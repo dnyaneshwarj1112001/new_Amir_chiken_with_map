@@ -26,7 +26,7 @@ class CustomChipButton extends StatelessWidget {
         child: Apptext(
           text: text,
           color: Colors.white,
-          size: 10, // Small text size
+          size: 11, // Small text size
           fontWeight: FontWeight.w600,
         ),
       ),

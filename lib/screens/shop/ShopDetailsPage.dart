@@ -319,11 +319,8 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
               ),
             ),
             const Gaph(height: 20),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 200),
-              child: ShopwiseProductLinearList(
-                productList: productList,
-              ),
+            ShopwiseProductLinearList(
+              productList: productList,
             ),
           ],
         ),

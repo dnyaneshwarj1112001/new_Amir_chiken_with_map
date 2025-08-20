@@ -422,7 +422,10 @@ class _PincodeBottomSheetState extends State<PincodeBottomSheet> {
                 ),
                 child: const Text(
                   "Apply",
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.white),
                 ),
               ),
             ),

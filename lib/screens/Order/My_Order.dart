@@ -1,5 +1,6 @@
 import 'package:meatzo/helper/util.dart';
 import 'package:meatzo/presentation/Global_widget/AppbarGlobal.dart';
+import 'package:meatzo/presentation/Global_widget/Appcolor.dart';
 import 'package:meatzo/screens/AuthScreen/custome_Next_button.dart';
 import 'package:meatzo/screens/Order/TrackOrderPage.dart';
 import 'package:meatzo/screens/Order/orderService/myorderService.dart';
@@ -141,7 +142,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                         ? "Cash on Delivery"
                                         : "Online Payment",
                                     fontWeight: FontWeight.w600,
-                                    size: 10,
+                                    size: 12,
                                     color:
                                         _getStatusColor(order["status"] ?? ""),
                                   ),
@@ -151,64 +152,100 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                             const SizedBox(height: 6),
                             Apptext(
                               text: "Order Code: ${order["tbl_order_code"]}",
-                              size: 10,
+                              size: 12,
                               color: Colors.grey[700],
                             ),
                             const SizedBox(height: 4),
                             Apptext(
                               text:
                                   "Date: ${formatDate(order["order_delivery_date"])}  •  Total Bill: Rs. ${order["total_bill"]}",
-                              size: 10,
+                              size: 12,
                               color: Colors.grey[700],
                               fontWeight: FontWeight.bold,
                             ),
                             const SizedBox(height: 10),
                             Row(
                               children: [
-                                CustomButton(
-                                  height: 35,
-                                  width: 90,
-                                  text: "View Receipt",
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => Invoice_Recept(
-                                                orderId:
-                                                    order["order_master_id"],
-                                              )),
-                                    );
-                                  },
-                                ),
-                                const SizedBox(width: 10),
-                                if (order['order_status'] ==
-                                    "transporting") ...[
-                                  CustomButton(
-                                    height: 35,
-                                    width: 90,
-                                    text: "Track Order",
+                                SizedBox(
+                                  height: 30,
+                                  width: 140,
+                                  child: ElevatedButton(
                                     onPressed: () {
-                                      final double initialLat = double.tryParse(
-                                              order['lat']?.toString() ??
-                                                  '0.0') ??
-                                          0.0;
-                                      final double initialLng = double.tryParse(
-                                              order['lng']?.toString() ??
-                                                  '0.0') ??
-                                          0.0;
-
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) =>
-                                              TrackOrderMapPage(
+                                          builder: (context) => Invoice_Recept(
                                             orderId: order["order_master_id"],
-                                            initialLat: initialLat,
-                                            initialLng: initialLng,
                                           ),
                                         ),
                                       );
                                     },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor:
+                                          Color(0xff9a292f), // ✅ your app color
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            30), // ✅ circular edges
+                                      ),
+                                      elevation: 4,
+                                    ),
+                                    child: const Text(
+                                      "View Receipt",
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                if (order['order_status'] ==
+                                    "transporting") ...[
+                                  SizedBox(
+                                    height: 30,
+                                    width: 120,
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        final double initialLat =
+                                            double.tryParse(
+                                                    order['lat']?.toString() ??
+                                                        '0.0') ??
+                                                0.0;
+                                        final double initialLng =
+                                            double.tryParse(
+                                                    order['lng']?.toString() ??
+                                                        '0.0') ??
+                                                0.0;
+
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                TrackOrderMapPage(
+                                              orderId: order["order_master_id"],
+                                              initialLat: initialLat,
+                                              initialLng: initialLng,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(
+                                            0xff9a292f), // ✅ custom color
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                              30), // ✅ circular edges
+                                        ),
+                                        elevation: 4,
+                                      ),
+                                      child: const Text(
+                                        "Track Order",
+                                        style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
                                   ),
                                 ]
                               ],
@@ -217,7 +254,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                             const Apptext(
                               text: "Order Details",
                               fontWeight: FontWeight.bold,
-                              size: 11,
+                              size: 12,
                             ),
                             const SizedBox(height: 6),
                             Container(
@@ -279,13 +316,13 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         Apptext(
           text: name,
           fontWeight: FontWeight.w500,
-          size: 10,
+          size: 12,
         ),
         Apptext(
           text: "₹ $price",
           color: Colors.green,
           fontWeight: FontWeight.bold,
-          size: 10,
+          size: 12,
         ),
       ],
     );

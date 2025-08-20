@@ -222,10 +222,19 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
       if (placemarks.isNotEmpty && mounted) {
         final place = placemarks.first;
         setState(() {
-          // Auto-fill street address with selected location
-          streetController.text = place.street?.isNotEmpty == true
-              ? place.street!
-              : "${place.name ?? ''}, ${place.subLocality ?? ''}".trim();
+          // streetController.text = place.street?.isNotEmpty == false
+          //     ? place.street!
+          //     : "${place.name ?? ''}, ${place.subLocality ?? ''}";
+          streetController.text = [
+            // place.name,
+            place.subLocality,
+            place.locality,
+            place.subAdministrativeArea,
+            place.administrativeArea,
+            place.postalCode,
+            place.country
+          ].where((e) => e != null && e.isNotEmpty).join(", ");
+
           cityController.text = place.locality ?? '';
           stateController.text = place.administrativeArea ?? '';
           countryController.text = place.country ?? '';

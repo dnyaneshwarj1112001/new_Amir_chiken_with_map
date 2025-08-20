@@ -150,6 +150,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                               }
                             : () {},
                         text: state is AuthLoading ? "Loading..." : "Sign In",
+                      
                       ),
                       const SizedBox(height: 30),
                       const Row(

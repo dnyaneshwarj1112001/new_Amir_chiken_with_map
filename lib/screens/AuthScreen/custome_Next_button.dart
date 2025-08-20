@@ -33,6 +33,8 @@ class CustomButton extends StatelessWidget {
         onPressed: onPressed,
         child: Apptext(
           text: text,
+          fontWeight: FontWeight.bold,
+          size: 16,
           color: Colors.white,
         ),
       ),

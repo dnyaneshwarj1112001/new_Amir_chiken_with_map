@@ -98,39 +98,42 @@ class _OrderReciptState extends State<OrderRecipt> {
           Navigator.pushReplacementNamed(context, AppRoutes.home);
           return false;
         },
-        child: AlertDialog(
-          title: const Apptext(
-              text: "Thank You for Your Order!", fontWeight: FontWeight.bold),
-          content: const Apptext(
-            text:
-                "Your order has been successfully placed. Please go to View my order for live tracking.",
-          ),
-          actions: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                CustomChipButton(
-                  text: "BACK TO HOME",
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => const NavBar()),
-                    );
-                  },
-                ),
-                CustomChipButton(
-                  text: "VIEW MY ORDERS",
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const OrderDetailsScreen()),
-                    );
-                  },
-                ),
-              ],
+        child: Container(
+          width: double.infinity,
+          child: AlertDialog(
+            title: const Apptext(
+                text: "Thank You for Your Order!", fontWeight: FontWeight.bold),
+            content: const Apptext(
+              text:
+                  "Your order has been successfully placed. Please go to View my order for live tracking.",
             ),
-          ],
+            actions: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  CustomChipButton(
+                    text: "BACK TO HOME",
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => const NavBar()),
+                      );
+                    },
+                  ),
+                  CustomChipButton(
+                    text: "VIEW MY ORDERS",
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const OrderDetailsScreen()),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

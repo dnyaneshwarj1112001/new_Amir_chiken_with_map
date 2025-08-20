@@ -6,6 +6,7 @@ import 'package:meatzo/presentation/Global_widget/apptext.dart'; // Assuming you
 import 'package:meatzo/presentation/Global_widget/emtydata.dart'; // Import EmptyStateWidget
 import 'package:meatzo/presentation/Global_widget/app_routes.dart';
 
+
 class AllShopsGridPage extends StatefulWidget {
   final List<dynamic> shops; // This will now hold your fetched real shop data
 
