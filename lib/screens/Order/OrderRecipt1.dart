@@ -95,7 +95,7 @@ class _OrderReciptState extends State<OrderRecipt> {
       barrierDismissible: false,
       builder: (context) => WillPopScope(
         onWillPop: () async {
-          Navigator.pushReplacementNamed(context, AppRoutes.nav);
+          Navigator.pushReplacementNamed(context, AppRoutes.home);
           return false;
         },
         child: AlertDialog(

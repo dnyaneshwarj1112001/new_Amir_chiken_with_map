@@ -288,7 +288,7 @@ class _MyCardScreenState extends State<MyCardScreen>
     // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
-        Navigator.pushReplacementNamed(context, AppRoutes.nav);
+        Navigator.pushReplacementNamed(context, AppRoutes.home);
         return false;
       },
       child: Scaffold(

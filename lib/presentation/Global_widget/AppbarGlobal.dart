@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final bool centerTitle;
-
   final Color titleColor;
   final FontWeight titleFontWeight;
   final List<Widget>? actions;
+  final Widget? leading;
 
   const CustomAppBar({
     super.key,
@@ -16,12 +16,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.titleColor = Colors.white,
     this.titleFontWeight = FontWeight.bold,
     this.actions,
+    this.leading,
   });
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
       bottomOpacity: BorderSide.strokeAlignCenter,
+      leading: leading,
       title: Text(
         title,
         style: TextStyle(

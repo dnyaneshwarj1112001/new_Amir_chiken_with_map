@@ -99,8 +99,6 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
   }
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) {
- 
-
     // Navigator.pop(context,
     //     {'paymentId': response.paymentId, 'paymentMode': widget.Payment_mode});
     _placeOrder(paymentMode: "online", razorpayPaymentId: response.paymentId);
@@ -197,7 +195,7 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
       // ignore: deprecated_member_use
       builder: (context) => WillPopScope(
         onWillPop: () async {
-          Navigator.pushReplacementNamed(context, AppRoutes.nav);
+          Navigator.pushReplacementNamed(context, AppRoutes.home);
           return false;
         },
         child: AlertDialog(
@@ -225,7 +223,8 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
                   onPressed: () {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (_) => const OrderDetailsScreen()),
+                      MaterialPageRoute(
+                          builder: (_) => const OrderDetailsScreen()),
                     );
                   },
                 ),

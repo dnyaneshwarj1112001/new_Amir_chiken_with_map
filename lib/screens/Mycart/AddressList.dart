@@ -4,6 +4,7 @@ import 'package:meatzo/core/network/httpservice.dart';
 import 'package:meatzo/models/address_model.dart';
 import 'package:meatzo/presentation/Global_widget/AppbarGlobal.dart';
 import 'package:meatzo/presentation/Global_widget/Appcolor.dart';
+import 'package:meatzo/presentation/Global_widget/app_routes.dart';
 import 'package:meatzo/presentation/Global_widget/apptext.dart';
 import 'package:meatzo/screens/Mycart/ChangeAddress.dart';
 import 'package:hive/hive.dart';
@@ -21,6 +22,8 @@ class _AddressListState extends State<AddressList> {
   String? error;
   Address? selectedAddress;
 
+  int selectedIndex = 0;
+
   @override
   void initState() {
     super.initState();
@@ -34,14 +37,13 @@ class _AddressListState extends State<AddressList> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-      
+
         if (data['status'] == true) {
           if (!mounted) return;
           setState(() {
             addresses = (data['data'] as List)
                 .map((address) => Address.fromJson(address))
                 .toList();
-         
 
             selectedAddress = addresses.firstWhere(
               (address) => address.isDefault == 1,
@@ -82,28 +84,24 @@ class _AddressListState extends State<AddressList> {
 
       if (response.statusCode == 200) {
         final box = await Hive.openBox('addressBox');
-        final selectedAddress =
-            addresses.firstWhere((a) => a.addressId == addressId);
-        box.put('city', selectedAddress.city);
-        box.put('state', selectedAddress.state);
-        box.put('pin', selectedAddress.pinCode.toString());
-        box.put('mobile', selectedAddress.mobileNumber);
+        final selected = addresses.firstWhere((a) => a.addressId == addressId);
+        box.put('city', selected.city);
+        box.put('state', selected.state);
+        box.put('pin', selected.pinCode.toString());
+        box.put('mobile', selected.mobileNumber);
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Default address updated successfully')),
         );
 
-        Navigator.pop(context, selectedAddress);
-        if (!mounted) return;
+        Navigator.pop(context, selected);
         _fetchAddresses();
       } else {
-        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to update default address')),
         );
       }
     } catch (e) {
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
@@ -119,16 +117,13 @@ class _AddressListState extends State<AddressList> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Address deleted successfully')),
         );
-        if (!mounted) return;
         _fetchAddresses();
       } else {
-        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to delete address')),
         );
       }
     } catch (e) {
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
@@ -155,6 +150,7 @@ class _AddressListState extends State<AddressList> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Top Section
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -244,6 +240,8 @@ class _AddressListState extends State<AddressList> {
                 ],
               ),
               const SizedBox(height: 12),
+
+              // Buttons Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -277,63 +275,111 @@ class _AddressListState extends State<AddressList> {
     );
   }
 
+  void onTapped(int index) {
+    setState(() {
+      selectedIndex = index;
+    });
+
+    // Use pushReplacementNamed to avoid stacking nav bars
+    switch (index) {
+      case 0:
+        Navigator.pushReplacementNamed(context, AppRoutes.home);
+        break;
+      case 1:
+        Navigator.pushReplacementNamed(context, AppRoutes.myCart);
+        break;
+      case 2:
+        Navigator.pushReplacementNamed(context, AppRoutes.order);
+        break;
+      case 3:
+        Navigator.pushReplacementNamed(context, AppRoutes.profile);
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const CustomAppBar(title: "My Addresses"),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : error != null
-              ? Center(child: Text(error!))
-              : addresses.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.location_off,
-                              size: 64, color: Colors.grey),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'No addresses found',
-                            style: TextStyle(fontSize: 18, color: Colors.grey),
-                          ),
-                          const SizedBox(height: 24),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const AddressEntryScreen()),
-                              ).then((_) => _fetchAddresses());
-                            },
-                            icon: const Icon(Icons.add_location),
-                            label: const Text('Add New Address'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Appcolor.primaryRed,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 24, vertical: 12),
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        return false;
+      },
+      child: Scaffold(
+        appBar: const CustomAppBar(title: "My Addresses"),
+        body: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : error != null
+                ? Center(child: Text(error!))
+                : addresses.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.location_off,
+                                size: 64, color: Colors.grey),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'No addresses found',
+                              style:
+                                  TextStyle(fontSize: 18, color: Colors.grey),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 24),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const AddressEntryScreen()),
+                                ).then((_) => _fetchAddresses());
+                              },
+                              icon: const Icon(Icons.add_location),
+                              label: const Text('Add New Address'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Appcolor.primaryRed,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 24, vertical: 12),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: addresses.length,
+                        itemBuilder: (context, index) =>
+                            _buildAddressCard(addresses[index]),
                       ),
-                    )
-                  : ListView.builder(
-                      itemCount: addresses.length,
-                      itemBuilder: (context, index) =>
-                          _buildAddressCard(addresses[index]),
-                    ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddressEntryScreen()),
-          ).then((_) => _fetchAddresses());
-        },
-        backgroundColor: Appcolor.primaryRed,
-        icon: const Icon(Icons.add_location, color: Colors.white),
-        label: const Text('Add Address', style: TextStyle(color: Colors.white)),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const AddressEntryScreen()),
+            ).then((_) => _fetchAddresses());
+          },
+          backgroundColor: Appcolor.primaryRed,
+          icon: const Icon(Icons.add_location, color: Colors.white),
+          label:
+              const Text('Add Address', style: TextStyle(color: Colors.white)),
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: const Color(0xFF9A292F),
+          currentIndex: selectedIndex,
+          onTap: onTapped,
+          selectedItemColor: Colors.white,
+          unselectedItemColor: Colors.grey,
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.shopping_cart), label: "MyCart"),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.local_shipping), label: "Order"),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.account_circle), label: "Profile"),
+          ],
+        ),
       ),
     );
   }

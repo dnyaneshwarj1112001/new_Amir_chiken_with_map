@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:meatzo/presentation/Global_widget/app_routes.dart';
 
 class ShopDetailsPage extends StatefulWidget {
   final String text;
@@ -54,6 +55,9 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
       'Accept': 'application/json',
     });
 
+    // Check if widget is still mounted before calling setState
+    if (!mounted) return;
+
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
 
@@ -62,7 +66,7 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
       setState(() {
         productList = productdata;
       });
-    } 
+    }
   }
 
   @override
@@ -88,7 +92,10 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
                   left: 10,
                   child: IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      // Use NavigationService to go back to home with bottom navigation
+                      NavigationService.instance.goToHome(context);
+                    },
                   ),
                 ),
                 Positioned(
@@ -169,7 +176,6 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
                                 }
                               }
                             } catch (e) {
-                            
                               final googleMapsUrl =
                                   'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
                               if (await canLaunchUrl(
@@ -313,8 +319,11 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
               ),
             ),
             const Gaph(height: 20),
-            ShopwiseProductLinearList(
-              productList: productList,
+            Padding(
+              padding: const EdgeInsets.only(bottom: 200),
+              child: ShopwiseProductLinearList(
+                productList: productList,
+              ),
             ),
           ],
         ),

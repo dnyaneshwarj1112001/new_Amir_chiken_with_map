@@ -3,6 +3,8 @@ import 'package:meatzo/screens/Order/orderService/single_order_service.dart';
 import 'package:flutter/material.dart';
 import 'package:meatzo/presentation/Global_widget/apptext.dart';
 import 'package:meatzo/presentation/Global_widget/gap.dart';
+import 'package:meatzo/presentation/Global_widget/bottomNavigationbar.dart';
+import 'package:meatzo/presentation/Global_widget/app_routes.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -82,7 +84,6 @@ The Company reserves the right, at its discretion, to change, modify, add, or re
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: CustomAppBar(
         title: "Invoice Receipt",
@@ -101,6 +102,11 @@ The Company reserves the right, at its discretion, to change, modify, add, or re
             },
           ),
         ],
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () =>
+              Navigator.pushReplacementNamed(context, AppRoutes.order),
+        ),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _futureOrder,
@@ -352,6 +358,48 @@ The Company reserves the right, at its discretion, to change, modify, add, or re
             return const Center(child: Text('No order data available.'));
           }
         },
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: const Color(0xFF9A292F),
+        currentIndex: 2, // Order tab index
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.grey,
+        elevation: 8,
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              Navigator.pushReplacementNamed(context, AppRoutes.home);
+              break;
+            case 1:
+              Navigator.pushReplacementNamed(context, AppRoutes.myCart);
+              break;
+            case 2:
+              // Already on orders page
+              break;
+            case 3:
+              Navigator.pushReplacementNamed(context, AppRoutes.profile);
+              break;
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'MyCart',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.local_shipping),
+            label: 'Order',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }

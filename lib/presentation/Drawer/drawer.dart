@@ -34,7 +34,7 @@ class DrawerExample extends StatelessWidget {
               style: TextStyle(color: Colors.white),
             ),
             onTap: () {
-              Navigator.pushReplacementNamed(context, AppRoutes.myCard);
+              Navigator.pushReplacementNamed(context, AppRoutes.myCart);
             },
           ),
           ListTile(
@@ -67,8 +67,10 @@ class DrawerExample extends StatelessWidget {
               style: TextStyle(color: Colors.white),
             ),
             onTap: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const ProfileScreen()));
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ProfileScreen()));
             },
           ),
           ListTile(

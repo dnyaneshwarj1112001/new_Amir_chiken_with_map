@@ -2,7 +2,7 @@ import 'package:meatzo/presentation/Global_widget/AppbarGlobal.dart';
 import 'package:meatzo/presentation/Global_widget/Appcolor.dart';
 import 'package:meatzo/services/shop_service.dart';
 import 'package:flutter/material.dart';
-import 'package:meatzo/screens/shop/ShopDetailsPage.dart'; // Import ShopDetailsPage
+import 'package:meatzo/presentation/Global_widget/app_routes.dart';
 
 class ProductDetailList extends StatefulWidget {
   const ProductDetailList({
@@ -67,20 +67,16 @@ class _ProductDetailListState extends State<ProductDetailList>
   /// Navigates to the ShopDetailsPage, passing all necessary shop information.
   /// This method replaces the old _showWorkInProgressDialog.
   void _navigateToShopDetails(Map<String, dynamic> shop) {
-    Navigator.push(
+    AppRoutes.navigateToShopDetails(
       context,
-      MaterialPageRoute(
-        builder: (context) => ShopDetailsPage(
-          text: shop['name'] ?? 'Unknown', // Shop name for display
-          shopId: shop['id']?.toString() ?? '', // Shop ID, converted to string
-          images: shop['image'] ?? '', // Shop image URL
-          deliveryIn: shop['delivery_time'] ?? 'N/A', // Assuming a 'delivery_time' field exists, otherwise use a default
-          closedAt: shop['closes_at'] ?? 'N/A', // Shop closing time
-          openAt: shop['opens_at'] ?? 'N/A', // Shop opening time
-          latitude: shop['lat']?.toString() ?? '', // Shop latitude
-          lagitude: shop['lng']?.toString() ?? '', // Shop longitude
-        ),
-      ),
+      shopId: shop['id']?.toString() ?? '',
+      shopName: shop['name'] ?? 'Unknown',
+      images: shop['image'] ?? '',
+      deliveryIn: shop['delivery_time'] ?? 'N/A',
+      closedAt: shop['closes_at'] ?? 'N/A',
+      openAt: shop['opens_at'] ?? 'N/A',
+      latitude: shop['lat']?.toString() ?? '',
+      lagitude: shop['lng']?.toString() ?? '',
     );
   }
 
@@ -88,22 +84,30 @@ class _ProductDetailListState extends State<ProductDetailList>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      appBar: CustomAppBar(
-        title: widget.categoryName, // Use category name for title
+      appBar: AppBar(
+        backgroundColor: Appcolor.primaryRed,
+        title: Text(widget.categoryName,
+            style: const TextStyle(color: Colors.white)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => NavigationService.instance.goToHome(context),
+        ),
       ),
       body: _isLoading
           ? Center(
               child: CircularProgressIndicator(color: Appcolor.primaryRed),
             )
           : _shops.isEmpty
-              ? const Center(child: Text("No shops available for this category."))
+              ? const Center(
+                  child: Text("No shops available for this category."))
               : Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: FadeTransition(
                     opacity: _animation,
                     child: GridView.builder(
                       physics: const BouncingScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
@@ -136,11 +140,16 @@ class _ProductDetailListState extends State<ProductDetailList>
                                 children: [
                                   Expanded(
                                     flex: 5,
-                                    child: Image.network( // Use Image.network for shop image
-                                      shop['image'] ?? 'https://via.placeholder.com/150', // Placeholder if image is null
+                                    child: Image.network(
+                                      // Use Image.network for shop image
+                                      shop['image'] ??
+                                          'https://via.placeholder.com/150', // Placeholder if image is null
                                       fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return const Center(child: Icon(Icons.broken_image, size: 50, color: Colors.grey));
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return const Center(
+                                            child: Icon(Icons.broken_image,
+                                                size: 50, color: Colors.grey));
                                       },
                                     ),
                                   ),

@@ -1,24 +1,56 @@
 import 'package:meatzo/screens/Mycart/Screens/MyCartScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:meatzo/screens/Screen/HomeScrens/home_page_screen.dart';
-
 import 'package:meatzo/screens/Order/My_Order.dart';
 import 'package:meatzo/screens/Order/Profile/profileScreen.dart';
+import 'package:meatzo/presentation/Global_widget/app_routes.dart';
 
 class NavBar extends StatefulWidget {
-  const NavBar({super.key});
+  final int initialIndex;
+
+  const NavBar({
+    super.key,
+    this.initialIndex = 0,
+  });
 
   @override
   State<NavBar> createState() => _NavBarState();
 }
 
-class _NavBarState extends State<NavBar> {
-  int selectedIndex = 0;
+class _NavBarState extends State<NavBar> with TickerProviderStateMixin {
+  late int selectedIndex;
+  late PageController _pageController;
+  late AnimationController _animationController;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: selectedIndex);
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _animationController.dispose();
+    super.dispose();
+  }
 
   void onTapped(int index) {
     setState(() {
       selectedIndex = index;
     });
+
+    // Smooth page transition
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   final List<Widget> pages = [
@@ -30,7 +62,6 @@ class _NavBarState extends State<NavBar> {
 
   @override
   Widget build(BuildContext context) {
-    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         if (selectedIndex == 0) {
@@ -56,11 +87,24 @@ class _NavBarState extends State<NavBar> {
           setState(() {
             selectedIndex = 0;
           });
+          _pageController.animateToPage(
+            0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
           return false;
         }
       },
       child: Scaffold(
-        body: pages[selectedIndex],
+        body: PageView(
+          controller: _pageController,
+          onPageChanged: (index) {
+            setState(() {
+              selectedIndex = index;
+            });
+          },
+          children: pages,
+        ),
         bottomNavigationBar: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
           backgroundColor: const Color(0xFF9A292F),
@@ -68,6 +112,7 @@ class _NavBarState extends State<NavBar> {
           onTap: onTapped,
           selectedItemColor: Colors.white,
           unselectedItemColor: Colors.grey,
+          elevation: 8,
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
             BottomNavigationBarItem(

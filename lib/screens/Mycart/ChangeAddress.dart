@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_google_maps_webservices/places.dart';
 import 'package:geocoding/geocoding.dart';
@@ -12,10 +11,11 @@ import 'package:meatzo/core/network/httpservice.dart';
 import 'package:meatzo/presentation/Global_widget/AppbarGlobal.dart';
 import 'package:meatzo/presentation/Global_widget/Appcolor.dart';
 import 'package:meatzo/presentation/Global_widget/apptext.dart';
+import 'package:meatzo/presentation/Global_widget/gap.dart';
+import 'package:meatzo/presentation/Global_widget/app_routes.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 
 // Replace with your actual Google Maps API Key
-// ignore: constant_identifier_names
 const Maps_API_KEY = "AIzaSyDJE0rWj8t1gv1ZYzOESjUeoLpMhGrPJ_s";
 
 class AddressEntryScreen extends StatefulWidget {
@@ -27,6 +27,7 @@ class AddressEntryScreen extends StatefulWidget {
 
 class _AddressEntryScreenState extends State<AddressEntryScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _scrollController = ScrollController();
 
   final TextEditingController streetController = TextEditingController();
   final TextEditingController pinController = TextEditingController();
@@ -40,10 +41,12 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
   bool isDefault = true;
   bool isFormValid = false;
   bool isLoading = false;
+  bool isLocationLoading = true;
+  bool isMapLoading = true;
 
   String? latitude;
   String? longitude;
-  bool isLocationLoading = true;
+  String? currentAddress;
 
   // Google Maps related
   final Completer<GoogleMapController> _mapController = Completer();
@@ -60,10 +63,15 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
     _places = GoogleMapsPlaces(apiKey: Maps_API_KEY);
     _getCurrentLocationAndAddress();
     searchController.addListener(_onSearchChanged);
+    // Check initial form validity
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkFormValidity();
+    });
   }
 
   @override
   void dispose() {
+    _scrollController.dispose();
     searchController.removeListener(_onSearchChanged);
     searchController.dispose();
     streetController.dispose();
@@ -76,8 +84,64 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
   }
 
   Future<void> _getCurrentLocationAndAddress() async {
+    if (!mounted) return;
+
     try {
-      final position = await Geolocator.getCurrentPosition();
+      // Check location service
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                  'Location services are disabled. Please enable location services.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        _setDefaultLocation();
+        return;
+      }
+
+      // Check permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Location permission denied'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          _setDefaultLocation();
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                  'Location permissions are permanently denied. Please enable in settings.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        _setDefaultLocation();
+        return;
+      }
+
+      // Get current position
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      if (!mounted) return;
+
       latitude = position.latitude.toString();
       longitude = position.longitude.toString();
 
@@ -88,12 +152,36 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
       await _updateAddressFromCoordinates(
           position.latitude, position.longitude);
 
-      setState(() => isLocationLoading = false);
+      setState(() {
+        isLocationLoading = false;
+        isMapLoading = false;
+      });
     } catch (e) {
-      setState(() => isLocationLoading = false);
-      _currentCameraPosition = const LatLng(20.5937, 78.9629); // Default India
-      _addMarker(_currentCameraPosition!, "Default Location");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error getting location: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      _setDefaultLocation();
     }
+  }
+
+  void _setDefaultLocation() {
+    if (!mounted) return;
+
+    _currentCameraPosition = const LatLng(20.5937, 78.9629); // Default India
+    _addMarker(_currentCameraPosition!, "Default Location");
+
+    setState(() {
+      isLocationLoading = false;
+      isMapLoading = false;
+      countryController.text = "India";
+      stateController.text = "Maharashtra";
+      cityController.text = "Mumbai";
+    });
   }
 
   void _onMapCreated(GoogleMapController controller) {
@@ -107,6 +195,8 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
   }
 
   Future<void> _updateLocationFromTap(LatLng tappedLatLng) async {
+    if (!mounted) return;
+
     _addMarker(tappedLatLng, "Selected Location");
     latitude = tappedLatLng.latitude.toString();
     longitude = tappedLatLng.longitude.toString();
@@ -116,26 +206,34 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
   }
 
   Future<void> _onCameraIdle() async {
-    if (_currentCameraPosition != null) {
-      await _updateAddressFromCoordinates(
-          _currentCameraPosition!.latitude, _currentCameraPosition!.longitude);
-    }
+    if (!mounted || _currentCameraPosition == null) return;
+
+    await _updateAddressFromCoordinates(
+      _currentCameraPosition!.latitude,
+      _currentCameraPosition!.longitude,
+    );
   }
 
   Future<void> _updateAddressFromCoordinates(double lat, double lng) async {
+    if (!mounted) return;
+
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
-      if (placemarks.isNotEmpty) {
+      if (placemarks.isNotEmpty && mounted) {
         final place = placemarks.first;
         setState(() {
-          streetController.text =
-              "${place.name ?? ''}, ${place.street ?? ''}".trim();
+          // Auto-fill street address with selected location
+          streetController.text = place.street?.isNotEmpty == true
+              ? place.street!
+              : "${place.name ?? ''}, ${place.subLocality ?? ''}".trim();
           cityController.text = place.locality ?? '';
           stateController.text = place.administrativeArea ?? '';
           countryController.text = place.country ?? '';
           pinController.text = place.postalCode ?? '';
           latitude = lat.toString();
           longitude = lng.toString();
+          currentAddress =
+              "${place.street ?? ''}, ${place.locality ?? ''}, ${place.administrativeArea ?? ''}";
         });
         _checkFormValidity();
       }
@@ -145,6 +243,8 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
   }
 
   void _addMarker(LatLng position, String title) {
+    if (!mounted) return;
+
     setState(() {
       _markers.clear();
       _markers.add(
@@ -152,7 +252,7 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
           markerId: MarkerId(title),
           position: position,
           infoWindow: InfoWindow(title: title),
-          icon: BitmapDescriptor.defaultMarker,
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
         ),
       );
     });
@@ -161,9 +261,9 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
   void _onSearchChanged() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
-      if (searchController.text.isNotEmpty) {
+      if (searchController.text.isNotEmpty && mounted) {
         _getPlaceSuggestions(searchController.text);
-      } else {
+      } else if (mounted) {
         setState(() {
           _placePredictions = [];
         });
@@ -172,28 +272,39 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
   }
 
   Future<void> _getPlaceSuggestions(String query) async {
+    if (!mounted) return;
+
     try {
-      PlacesAutocompleteResponse response = await _places.autocomplete(query,
-          language: "en",
-          types: ["address"],
-          components: [Component(Component.country, "in")]);
-      if (response.status == "OK") {
-        setState(() {
-          _placePredictions = response.predictions;
-        });
-      } else {
+      PlacesAutocompleteResponse response = await _places.autocomplete(
+        query,
+        language: "en",
+        types: ["address"],
+        components: [Component(Component.country, "in")],
+      );
+
+      if (mounted) {
+        if (response.status == "OK") {
+          setState(() {
+            _placePredictions = response.predictions;
+          });
+        } else {
+          setState(() {
+            _placePredictions = [];
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
         setState(() {
           _placePredictions = [];
         });
       }
-    } catch (e) {
-      setState(() {
-        _placePredictions = [];
-      });
     }
   }
 
   Future<void> _selectPlace(Prediction prediction) async {
+    if (!mounted) return;
+
     searchController.removeListener(_onSearchChanged);
 
     setState(() {
@@ -203,13 +314,15 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
     });
 
     Future.delayed(const Duration(milliseconds: 300), () {
-      searchController.addListener(_onSearchChanged);
+      if (mounted) {
+        searchController.addListener(_onSearchChanged);
+      }
     });
 
     try {
       PlacesDetailsResponse detail =
           await _places.getDetailsByPlaceId(prediction.placeId!);
-      if (detail.status == "OK") {
+      if (detail.status == "OK" && mounted) {
         final geometry = detail.result.geometry;
         final lat = geometry?.location.lat;
         final lng = geometry?.location.lng;
@@ -220,7 +333,6 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
           latitude = lat.toString();
           longitude = lng.toString();
 
-          // Only animate camera if widget is still mounted and controller is ready
           if (mounted && _mapController.isCompleted) {
             try {
               final GoogleMapController controller =
@@ -234,9 +346,10 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
           }
 
           List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
-          if (placemarks.isNotEmpty) {
+          if (placemarks.isNotEmpty && mounted) {
             final place = placemarks.first;
             setState(() {
+              // Auto-fill street address with selected location
               streetController.text = place.street?.isNotEmpty == true
                   ? place.street!
                   : prediction.description!;
@@ -245,45 +358,67 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
               countryController.text = place.country ?? '';
               pinController.text = place.postalCode ?? '';
             });
+            _checkFormValidity();
           }
         }
       }
     } catch (e) {
-      setState(() {
-        streetController.text = prediction.description!;
-      });
+      if (mounted) {
+        setState(() {
+          streetController.text = prediction.description!;
+        });
+      }
     }
   }
 
   void _checkFormValidity() {
-    final isValid = _formKey.currentState?.validate() ?? false;
+    if (!mounted) return;
+
+    // Check if all required fields are filled
+    bool isValid = true;
+
+    // Check street address
+    if (streetController.text.trim().isEmpty) {
+      isValid = false;
+    }
+
+    // Check city
+    if (cityController.text.trim().isEmpty) {
+      isValid = false;
+    }
+
+    // Check state
+    if (stateController.text.trim().isEmpty) {
+      isValid = false;
+    }
+
+    // Check country
+    if (countryController.text.trim().isEmpty) {
+      isValid = false;
+    }
+
+    // Check pin code (must be 6 digits)
+    if (pinController.text.trim().isEmpty || pinController.text.length != 6) {
+      isValid = false;
+    }
+
+    // Check phone number
+    if (phoneController.text.trim().isEmpty) {
+      isValid = false;
+    }
+
+    // Check if location is selected
+    if (latitude == null || longitude == null) {
+      isValid = false;
+    }
+
     if (isValid != isFormValid) {
       setState(() => isFormValid = isValid);
     }
   }
 
   Future<void> _submit() async {
-    checkvalidation() {
-      if (streetController.text.isEmpty) {
-        return "Street address is required";
-      }
-      if (cityController.text.isEmpty) {
-        return "City is required";
-      }
-      if (stateController.text.isEmpty) {
-        return "State is required";
-      }
-      if (countryController.text.isEmpty) {
-        return "Country is required";
-      }
-      if (pinController.text.isEmpty) {
-        return "Pin code is required";
-      }
-      if (phoneController.text.isEmpty) {
-        return "Mobile number is required";
-      }
-      return null;
-    }
+    if (!mounted) return;
 
     if (_formKey.currentState!.validate()) {
       final data = {
@@ -312,284 +447,584 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
           box.put('pin', pinController.text);
           box.put('mobile', phoneController.text);
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  responseBody['message'] ?? "Address saved successfully!"),
-            ),
-          );
-
-          Future.delayed(const Duration(milliseconds: 500), () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const MyCardScreen()),
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                    responseBody['message'] ?? "Address saved successfully!"),
+                backgroundColor: Colors.green,
+              ),
             );
-          });
+
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MyCardScreen()),
+                );
+              }
+            });
+          }
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("❌ Failed: ${response.statusCode}")),
-          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("❌ Failed: ${response.statusCode}"),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
         }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("❌ Error: $e")),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("❌ Error: $e"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       } finally {
-        setState(() => isLoading = false);
+        if (mounted) {
+          setState(() => isLoading = false);
+        }
       }
     }
   }
 
-  InputDecoration _inputDecoration(String label, IconData icon,
-      {bool isRequired = false}) {
-    return InputDecoration(
-      isDense: true,
-      contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-      label: RichText(
-        text: TextSpan(
-          children: [
-            WidgetSpan(
-              child: Apptext(
-                text: label,
-                color: Colors.blueGrey,
-                size: 14,
-              ),
-            ),
-            if (isRequired)
-              const WidgetSpan(
-                child: Text(
-                  ' *',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-          ],
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    required String? Function(String?) validator,
+    bool isRequired = false,
+    TextInputType? keyboardType,
+    int? maxLines = 1,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          labelText: isRequired ? "$label *" : label,
+          labelStyle: TextStyle(
+            color: Colors.grey[600],
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+          prefixIcon: Icon(icon, color: Appcolor.primaryRed, size: 20),
+          filled: true,
+          fillColor: Colors.grey[50],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey[300]!),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey[300]!),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Appcolor.primaryRed, width: 2),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.red[400]!, width: 2),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.red[400]!, width: 2),
+          ),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
-      ),
-      prefixIcon: Icon(icon, color: Colors.blueGrey, size: 20),
-      filled: true,
-      fillColor: Colors.grey[200],
-      focusedBorder: OutlineInputBorder(
-        borderSide: BorderSide(
-          color: Theme.of(context).colorScheme.primary,
-          width: 1.5,
-        ),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: Colors.blueGrey),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: Colors.red),
-        borderRadius: BorderRadius.circular(8),
+        validator: validator,
+        onChanged: (_) => _checkFormValidity(),
+        onFieldSubmitted: (_) => _checkFormValidity(),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (isLocationLoading || _currentCameraPosition == null) {
-      return const Scaffold(
-        appBar: CustomAppBar(title: "Enter Delivery Address"),
-        body: Center(child: CircularProgressIndicator()),
+    if (isLocationLoading) {
+      return Scaffold(
+        appBar: const CustomAppBar(title: "Enter Delivery Address"),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(color: Appcolor.primaryRed),
+              const SizedBox(height: 20),
+              Text(
+                "Getting your location...",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
       );
     }
 
     return Scaffold(
-      appBar: const CustomAppBar(title: "Enter Delivery Address"),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          onChanged: _checkFormValidity,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Search Bar
-              TextFormField(
-                controller: searchController,
-                decoration:
-                    _inputDecoration("Search Location", Icons.search).copyWith(
-                  suffixIcon: searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.blueGrey),
-                          onPressed: () {
-                            setState(() {
-                              searchController.clear();
-                              _placePredictions = [];
-                            });
-                          },
-                        )
-                      : null,
-                ),
-              ),
-
-              // Show search suggestions as a list
-              if (_placePredictions.isNotEmpty)
-                Container(
-                  margin: const EdgeInsets.only(top: 4, bottom: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blueGrey),
-                  ),
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: _placePredictions.length,
-                    itemBuilder: (context, index) {
-                      final prediction = _placePredictions[index];
-                      return ListTile(
-                        title: Text(prediction.description ?? ''),
-                        onTap: () => _selectPlace(prediction),
-                      );
-                    },
-                  ),
-                ),
-
-              // Google Map
-              Container(
-                height: 250,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blueGrey),
-                ),
-                child: GoogleMap(
-                  mapType: MapType.normal,
-                  initialCameraPosition: CameraPosition(
-                    target: _currentCameraPosition!,
-                    zoom: 15,
-                  ),
-                  onMapCreated: _onMapCreated,
-                  onCameraMove: _onCameraMove,
-                  onCameraIdle: _onCameraIdle,
-                  markers: _markers,
-                  myLocationButtonEnabled: true,
-                  myLocationEnabled: true,
-                  zoomControlsEnabled: true,
-                  onTap: (LatLng latLng) {
-                    _updateLocationFromTap(latLng);
-                  },
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Address fields
-              TextFormField(
-                controller: streetController,
-                decoration: _inputDecoration("Selected Address", Icons.home,
-                    isRequired: true),
-                validator: (value) =>
-                    value!.isEmpty ? "Address is required" : null,
-                onChanged: (_) => _checkFormValidity(),
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: cityController,
-                decoration: _inputDecoration("City", Icons.location_city,
-                    isRequired: true),
-                validator: (value) =>
-                    value!.isEmpty ? "City is required" : null,
-                onChanged: (_) => _checkFormValidity(),
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: stateController,
-                decoration:
-                    _inputDecoration("State", Icons.map, isRequired: true),
-                validator: (value) =>
-                    value!.isEmpty ? "State is required" : null,
-                onChanged: (_) => _checkFormValidity(),
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: countryController,
-                decoration:
-                    _inputDecoration("Country", Icons.flag, isRequired: true),
-                validator: (value) =>
-                    value!.isEmpty ? "Country is required" : null,
-                onChanged: (_) => _checkFormValidity(),
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: pinController,
-                keyboardType: TextInputType.number,
-                decoration:
-                    _inputDecoration("Pin Code", Icons.pin, isRequired: true),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Pin Code is required";
-                    return "Pin Code must be 6 digits";
-                  }
-                  return null;
-                },
-                onChanged: (_) => _checkFormValidity(),
-              ),
-              const SizedBox(height: 10),
-              IntlPhoneField(
-                decoration: _inputDecoration("Phone Number", Icons.phone,
-                    isRequired: true),
-                initialCountryCode: 'IN',
-                onChanged: (phone) {
-                  if (phone.number.isEmpty) {
-                    phoneController.clear();
-                  } else {
-                    phoneController.text = phone.number;
-                  }
-                  countryCode = phone.countryCode;
-                  _checkFormValidity();
-                },
-                validator: (phone) {
-                  if (phone == null ||
-                      phone.number.isEmpty ||
-                      phoneController.text.isEmpty) {
-                    return "Phone number is required";
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              SwitchListTile(
-                value: isDefault,
-                onChanged: (val) => setState(() => isDefault = val),
-                title: const Apptext(
-                  text: "Set as Default Address",
-                  color: Colors.black87,
-                  size: 14,
-                ),
-                activeColor: Colors.blueGrey,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: isFormValid && !isLoading ? _submit : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Appcolor.primaryRed,
-                  minimumSize: const Size.fromHeight(45),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: isLoading
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Apptext(
-                        text: "Save Address",
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-              ),
-              const SizedBox(height: 30),
-            ],
-          ),
+      appBar: CustomAppBar(
+        title: "Enter Delivery Address",
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () =>
+              Navigator.pushReplacementNamed(context, AppRoutes.myCart),
         ),
+      ),
+      body: Form(
+        key: _formKey,
+        onChanged: _checkFormValidity,
+        child: Column(
+          children: [
+            // Search and Map Section
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    spreadRadius: 1,
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Search Bar
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          spreadRadius: 1,
+                          blurRadius: 3,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: TextFormField(
+                      controller: searchController,
+                      decoration: InputDecoration(
+                        hintText: "Search for location...",
+                        hintStyle: TextStyle(color: Colors.grey[400]),
+                        prefixIcon:
+                            Icon(Icons.search, color: Appcolor.primaryRed),
+                        suffixIcon: searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon:
+                                    Icon(Icons.clear, color: Colors.grey[400]),
+                                onPressed: () {
+                                  setState(() {
+                                    searchController.clear();
+                                    _placePredictions = [];
+                                  });
+                                },
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide:
+                              BorderSide(color: Appcolor.primaryRed, width: 2),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 16),
+                      ),
+                    ),
+                  ),
+
+                  // Search suggestions
+                  if (_placePredictions.isNotEmpty)
+                    Container(
+                      margin: const EdgeInsets.only(top: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.2),
+                            spreadRadius: 1,
+                            blurRadius: 5,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: _placePredictions.length,
+                        itemBuilder: (context, index) {
+                          final prediction = _placePredictions[index];
+                          return ListTile(
+                            leading: Icon(Icons.location_on,
+                                color: Appcolor.primaryRed),
+                            title: Text(
+                              prediction.description ?? '',
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                            onTap: () => _selectPlace(prediction),
+                          );
+                        },
+                      ),
+                    ),
+
+                  const SizedBox(height: 16),
+
+                  // Map
+                  Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: GoogleMap(
+                        mapType: MapType.normal,
+                        initialCameraPosition: CameraPosition(
+                          target: _currentCameraPosition!,
+                          zoom: 15,
+                        ),
+                        onMapCreated: _onMapCreated,
+                        onCameraMove: _onCameraMove,
+                        onCameraIdle: _onCameraIdle,
+                        markers: _markers,
+                        myLocationButtonEnabled: true,
+                        myLocationEnabled: true,
+                        zoomControlsEnabled: false,
+                        onTap: _updateLocationFromTap,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+                  Text(
+                    "Tap on map to select location or search above",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+
+            // Form Fields Section
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Address Details",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[800],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      _buildInputField(
+                        controller: streetController,
+                        label: "Street Address",
+                        icon: Icons.home,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "Street address is required";
+                          }
+                          return null;
+                        },
+                        isRequired: true,
+                        maxLines: 2,
+                      ),
+
+                      _buildInputField(
+                        controller: cityController,
+                        label: "City",
+                        icon: Icons.location_city,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "City is required";
+                          }
+                          return null;
+                        },
+                        isRequired: true,
+                      ),
+
+                      _buildInputField(
+                        controller: stateController,
+                        label: "State",
+                        icon: Icons.map,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "State is required";
+                          }
+                          return null;
+                        },
+                        isRequired: true,
+                      ),
+
+                      _buildInputField(
+                        controller: countryController,
+                        label: "Country",
+                        icon: Icons.flag,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "Country is required";
+                          }
+                          return null;
+                        },
+                        isRequired: true,
+                      ),
+
+                      _buildInputField(
+                        controller: pinController,
+                        label: "Pin Code",
+                        icon: Icons.pin_drop,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "Pin Code is required";
+                          }
+                          if (value.trim().length != 6) {
+                            return "Pin Code must be exactly 6 digits";
+                          }
+                          if (!RegExp(r'^[0-9]+$').hasMatch(value.trim())) {
+                            return "Pin Code must contain only numbers";
+                          }
+                          return null;
+                        },
+                        isRequired: true,
+                        keyboardType: TextInputType.number,
+                      ),
+
+                      // Phone Field
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        child: IntlPhoneField(
+                          decoration: InputDecoration(
+                            labelText: "Phone Number *",
+                            labelStyle: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey[50],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey[300]!),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey[300]!),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                  color: Appcolor.primaryRed, width: 2),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 16),
+                          ),
+                          initialCountryCode: 'IN',
+                          onChanged: (phone) {
+                            if (phone.number.isEmpty) {
+                              phoneController.clear();
+                            } else {
+                              phoneController.text = phone.number;
+                            }
+                            countryCode = phone.countryCode;
+                            _checkFormValidity();
+                          },
+                          validator: (phone) {
+                            if (phone == null ||
+                                phone.number.isEmpty ||
+                                phoneController.text.isEmpty) {
+                              return "Phone number is required";
+                            }
+                            if (phone.number.length < 10) {
+                              return "Phone number must be at least 10 digits";
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+
+                      // Default Address Switch
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.star, color: Appcolor.primaryRed),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                "Set as Default Address",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey[800],
+                                ),
+                              ),
+                            ),
+                            Switch(
+                              value: isDefault,
+                              onChanged: (val) =>
+                                  setState(() => isDefault = val),
+                              activeColor: Appcolor.primaryRed,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Validation Status
+                      if (!isFormValid)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.orange[50],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.orange[300]!),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.info_outline,
+                                  color: Colors.orange[700], size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  "Please fill all required fields marked with * to enable Save Address button",
+                                  style: TextStyle(
+                                    color: Colors.orange[700],
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                      // Submit Button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: isFormValid && !isLoading ? _submit : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isFormValid
+                                ? Appcolor.primaryRed
+                                : Colors.grey[400],
+                            foregroundColor: Colors.white,
+                            elevation: isFormValid ? 2 : 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  isFormValid
+                                      ? "Save Address"
+                                      : "Fill Required Fields",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 30),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: const Color(0xFF9A292F),
+        currentIndex: 1, // Cart tab index
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.grey,
+        elevation: 8,
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              Navigator.pushReplacementNamed(context, AppRoutes.home);
+              break;
+            case 1:
+              // Already on cart page
+              break;
+            case 2:
+              Navigator.pushReplacementNamed(context, AppRoutes.order);
+              break;
+            case 3:
+              Navigator.pushReplacementNamed(context, AppRoutes.profile);
+              break;
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'MyCart',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.local_shipping),
+            label: 'Order',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }

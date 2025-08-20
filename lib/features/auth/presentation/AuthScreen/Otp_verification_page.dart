@@ -73,16 +73,13 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               content: Text('Otp verified '),
             ),
           );
-          Navigator.pushReplacementNamed(context, AppRoutes.nav);
+          Navigator.pushReplacementNamed(context, AppRoutes.home);
         } else if (state is OtpVerificationFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.error),
-            
             ),
           );
-        
-
         }
       }, builder: (context, state) {
         final cubit = context.read<Otpverificationcubit>();
@@ -132,7 +129,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                             FocusScope.of(context)
                                 .requestFocus(focusNodes[index - 1]);
                           }
-                 
                         },
                       ),
                     );

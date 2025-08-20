@@ -5,6 +5,7 @@ import 'package:meatzo/presentation/Global_widget/gap.dart';
 import 'package:meatzo/presentation/Global_widget/Onbording%20Screen/preScreens.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:meatzo/presentation/Global_widget/app_routes.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -16,8 +17,7 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   void navigatePage() {
     Timer(const Duration(seconds: 4), () {
-      Navigator.push(context,
-          MaterialPageRoute(builder: (context) => const OnbordingScreen()));
+      Navigator.pushReplacementNamed(context, AppRoutes.phoneAuth);
     });
   }
 
@@ -27,11 +27,11 @@ class _SplashScreenState extends State<SplashScreen> {
       final token = prefs.getString("auth_token");
 
       if (token != null && token.isNotEmpty) {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => const NavBar()));
+        // Navigate to home with bottom navigation
+        Navigator.pushReplacementNamed(context, AppRoutes.home);
       } else {
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) => const OnbordingScreen()));
+        // Navigate to onboarding
+        Navigator.pushReplacementNamed(context, AppRoutes.phoneAuth);
       }
     });
   }

@@ -22,6 +22,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   Future<void> fetchOrders() async {
     final fetchedOrders = await OrderDetailq.fetchOrders();
 
+    // Check if widget is still mounted before calling setState
+    if (!mounted) return;
+
     if (fetchedOrders != null) {
       setState(() {
         orders = fetchedOrders;
@@ -58,6 +61,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   void initState() {
     super.initState();
     fetchOrders();
+  }
+
+  @override
+  void dispose() {
+    // Ensure proper cleanup
+    super.dispose();
   }
 
   @override
