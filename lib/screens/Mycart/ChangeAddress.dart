@@ -581,6 +581,7 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
     }
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: CustomAppBar(
         title: "Enter Delivery Address",
         leading: IconButton(
@@ -680,21 +681,27 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
                           ),
                         ],
                       ),
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: _placePredictions.length,
-                        itemBuilder: (context, index) {
-                          final prediction = _placePredictions[index];
-                          return ListTile(
-                            leading: Icon(Icons.location_on,
-                                color: Appcolor.primaryRed),
-                            title: Text(
-                              prediction.description ?? '',
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                            onTap: () => _selectPlace(prediction),
-                          );
-                        },
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                            bottom: MediaQuery.of(context).viewInsets.bottom),
+                        child: SizedBox(
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: _placePredictions.length,
+                            itemBuilder: (context, index) {
+                              final prediction = _placePredictions[index];
+                              return ListTile(
+                                leading: Icon(Icons.location_on,
+                                    color: Appcolor.primaryRed),
+                                title: Text(
+                                  prediction.description ?? '',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                                onTap: () => _selectPlace(prediction),
+                              );
+                            },
+                          ),
+                        ),
                       ),
                     ),
 
