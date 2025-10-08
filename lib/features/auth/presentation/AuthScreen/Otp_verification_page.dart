@@ -4,9 +4,11 @@ import 'package:meatzo/data/repositories/auth_repository.dart';
 import 'package:meatzo/features/auth/logic/domain/auth/otp_verification_cubit.dart';
 import 'package:meatzo/features/auth/logic/domain/auth/otp_verification_state.dart';
 import 'package:meatzo/presentation/Global_widget/app_routes.dart';
+import 'package:meatzo/screens/Screen/HomeScrens/home_page_screen.dart';
 
 import 'package:flutter/material.dart';
 import 'package:meatzo/screens/AuthScreen/custome_Next_button.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
@@ -73,13 +75,16 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               content: Text('Otp verified '),
             ),
           );
-          Navigator.pushReplacementNamed(context, AppRoutes.home);
+          Navigator.pushReplacementNamed(context, AppRoutes.nav);
         } else if (state is OtpVerificationFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.error),
+              // ignore: avoid_print
             ),
           );
+          print(
+              '${state.error.toString()}---------------------------------------------------dsss----------------------------->>>>');
         }
       }, builder: (context, state) {
         final cubit = context.read<Otpverificationcubit>();
@@ -129,6 +134,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                             FocusScope.of(context)
                                 .requestFocus(focusNodes[index - 1]);
                           }
+                          print(
+                              "${otpControllers.map((controller) => controller.text).join()} -----------------------------------------------------------------------d;askdjfhlisudfh>>>>>>>>>>>");
                         },
                       ),
                     );

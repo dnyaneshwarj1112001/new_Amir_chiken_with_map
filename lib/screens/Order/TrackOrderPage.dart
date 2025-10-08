@@ -13,7 +13,6 @@ class TrackOrderMapPage extends StatefulWidget {
   final double initialLat;
   final double initialLng;
 
-  // ignore: use_super_parameters
   const TrackOrderMapPage({
     Key? key,
     required this.orderId,
@@ -39,7 +38,7 @@ class _TrackOrderMapPageState extends State<TrackOrderMapPage> {
   final String googleDirectionsApiKey =
       'AIzaSyDJE0rWj8t1gv1ZYzOESjUeoLpMhGrPJ_s';
 
-  static const CameraPosition _initialCameraPosition = CameraPosition(
+  CameraPosition _initialCameraPosition = CameraPosition(
     target: LatLng(0.0, 0.0),
     zoom: 14.0,
   );
@@ -121,9 +120,9 @@ class _TrackOrderMapPageState extends State<TrackOrderMapPage> {
   void _updateUserLocationMarker(Position position) {
     setState(() {
       _userMarker = Marker(
-        markerId: const MarkerId('userLocation'),
+        markerId: MarkerId('userLocation'),
         position: LatLng(position.latitude, position.longitude),
-        infoWindow: const InfoWindow(title: 'Your Location'),
+        infoWindow: InfoWindow(title: 'Your Location'),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
       );
 
@@ -140,17 +139,17 @@ class _TrackOrderMapPageState extends State<TrackOrderMapPage> {
   Future<void> _fetchOrderLocation() async {
     try {
       final order = await SingleOrderService().fetchOrder(widget.orderId);
-    
-      if (order['lat'] != null && order['lng'] != null) {
+      print('orderali $order');
+      if (order != null && order['lat'] != null && order['lng'] != null) {
         final double lat = double.tryParse(order['lat'].toString()) ?? 0.0;
         final double lng = double.tryParse(order['lng'].toString()) ?? 0.0;
-       
+        print('lat $lat long $lng');
 
         setState(() {
           _deliveryMarker = Marker(
-            markerId: const MarkerId('deliveryLocation'),
+            markerId: MarkerId('deliveryLocation'),
             position: LatLng(lat, lng),
-            infoWindow: const InfoWindow(title: 'Delivery Partner'),
+            infoWindow: InfoWindow(title: 'Delivery Partner'),
             icon:
                 BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
           );
@@ -169,7 +168,7 @@ class _TrackOrderMapPageState extends State<TrackOrderMapPage> {
         );
       }
     } catch (e) {
-     
+      print('Error fetching order location: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to fetch delivery location.')),
       );
@@ -245,7 +244,7 @@ class _TrackOrderMapPageState extends State<TrackOrderMapPage> {
               .toList();
 
           final Polyline polyline = Polyline(
-            polylineId: const PolylineId('path_to_delivery'),
+            polylineId: PolylineId('path_to_delivery'),
             points: polylineCoordinates,
             color: Colors.blue,
             width: 5,
@@ -257,9 +256,11 @@ class _TrackOrderMapPageState extends State<TrackOrderMapPage> {
           _drawStraightLine();
         }
       } else {
+        print('Failed to fetch directions: ${response.statusCode}');
         _drawStraightLine();
       }
     } catch (e) {
+      print('Error fetching directions: $e');
       _drawStraightLine();
     }
   }
@@ -267,7 +268,7 @@ class _TrackOrderMapPageState extends State<TrackOrderMapPage> {
   void _drawStraightLine() {
     if (_userMarker != null && _deliveryMarker != null) {
       final Polyline polyline = Polyline(
-        polylineId: const PolylineId('path_to_delivery'),
+        polylineId: PolylineId('path_to_delivery'),
         points: [
           _userMarker!.position,
           _deliveryMarker!.position,
@@ -296,13 +297,13 @@ class _TrackOrderMapPageState extends State<TrackOrderMapPage> {
     }
 
     return Scaffold(
-      appBar: const CustomAppBar(
+      appBar: CustomAppBar(
         title: "Track Order",
         titleColor: Colors.white,
         titleFontWeight: FontWeight.bold,
       ),
       body: _isLoadingLocation
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : Stack(
               children: [
                 GoogleMap(
@@ -349,13 +350,13 @@ class _TrackOrderMapPageState extends State<TrackOrderMapPage> {
                           BoxShadow(
                             color: Colors.black.withOpacity(0.2),
                             blurRadius: 6,
-                            offset: const Offset(0, 3),
+                            offset: Offset(0, 3),
                           ),
                         ],
                       ),
                       child: Text(
                         _distanceText,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: Colors.deepPurple,

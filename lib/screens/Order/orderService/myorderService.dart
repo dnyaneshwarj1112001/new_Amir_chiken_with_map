@@ -8,9 +8,10 @@ class OrderDetailq {
   static Future<List<dynamic>?> fetchOrders() async {
     final prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('auth_token');
-    const String url = '$_baseUrl/orders/list';
+    final String url = '$_baseUrl/orders/list';
 
     if (token == null) {
+      print("Token not found");
       return null;
     }
 
@@ -27,14 +28,18 @@ class OrderDetailq {
         final data = jsonDecode(response.body);
       
         if (data['orders'] is List) {
+          print("Orders fetched successfully");
           return data['orders'];
         } else {
+          print("Unexpected orders format");
           return null;
         }
       } else {
+        print("Failed to fetch orders: ${response.statusCode}");
         return null;
       }
     } catch (e) {
+      print("Error fetching orders: $e");
       return null;
     }
   }

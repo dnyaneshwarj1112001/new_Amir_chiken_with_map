@@ -1,5 +1,6 @@
 import 'package:meatzo/presentation/Global_widget/apptext.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class cardtext extends StatefulWidget {
   final String leadingtext;

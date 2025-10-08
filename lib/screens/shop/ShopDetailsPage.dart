@@ -1,6 +1,9 @@
 import 'dart:convert';
 
+import 'package:meatzo/helper/util.dart';
 import 'package:meatzo/presentation/Global_widget/apptext.dart';
+import 'package:meatzo/presentation/Global_widget/dummyimages.dart';
+import 'package:meatzo/screens/Screen/HomeScrens/serchbar.dart';
 import 'package:meatzo/screens/shop/shopwiseprodectlineerlistpage.dart';
 import 'package:flutter/material.dart';
 import 'package:meatzo/presentation/Global_widget/Appcolor.dart';
@@ -9,7 +12,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:meatzo/presentation/Global_widget/app_routes.dart';
 
 class ShopDetailsPage extends StatefulWidget {
   final String text;
@@ -55,17 +57,20 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
       'Accept': 'application/json',
     });
 
-    // Check if widget is still mounted before calling setState
-    if (!mounted) return;
-
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
 
       final productdata = data['products'];
+      // Util.pretty(productdata);
+
+      print(productdata);
 
       setState(() {
         productList = productdata;
       });
+    } else {
+      print(
+          "Failed to fetch shop details. Status code: ${response.statusCode}");
     }
   }
 
@@ -92,10 +97,7 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
                   left: 10,
                   child: IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () {
-                      // Use NavigationService to go back to home with bottom navigation
-                      NavigationService.instance.goToHome(context);
-                    },
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ),
                 Positioned(
@@ -161,7 +163,7 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
                                     "${place.name}, ${place.locality}, ${place.administrativeArea}";
 
                                 final googleMapsUrl =
-                                    'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude&query_place_id=$locationName';
+                                    'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude&query_place_id=${locationName}';
 
                                 if (await canLaunchUrl(
                                     Uri.parse(googleMapsUrl))) {
@@ -176,6 +178,8 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
                                 }
                               }
                             } catch (e) {
+                              print('Error getting location name: $e');
+                              // Fallback to just coordinates if location name fails
                               final googleMapsUrl =
                                   'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
                               if (await canLaunchUrl(

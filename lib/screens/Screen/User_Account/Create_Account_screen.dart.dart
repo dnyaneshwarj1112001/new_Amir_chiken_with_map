@@ -61,7 +61,7 @@ class _Create_Account_screenState extends State<Create_Account_screen> {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const PhoneAuthScreen()));
+                                  builder: (context) => PhoneAuthScreen()));
                         },
                         child: const Text(
                           "Already have an account?",
@@ -69,7 +69,7 @@ class _Create_Account_screenState extends State<Create_Account_screen> {
                         ),
                       ),
                     ),
-                    const Gaph(height: 20),
+                    Gaph(height: 20),
                     BlocBuilder<UserCreateBloc, UserCreateState>(
                       builder: (context, state) {
                         if (state is emtytext) {
@@ -77,7 +77,7 @@ class _Create_Account_screenState extends State<Create_Account_screen> {
                         } else if (state is UserTextInvalidState) {
                           return Text(
                             state.message,
-                            style: const TextStyle(fontSize: 17, color: Colors.red),
+                            style: TextStyle(fontSize: 17, color: Colors.red),
                           );
                         }
                         return Container();

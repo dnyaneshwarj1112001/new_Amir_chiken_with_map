@@ -13,11 +13,16 @@ class Otpverificationcubit extends Cubit<OtpVerificationState> {
     emit(OtpVerificationLoading());
     try {
       final response = await authRepository.VerifyOtp(PhoneNumber, otp);
-
+      print(
+          "$response------------------------------------------------------------------------------------------------------->>>");
       if (!response.hasError) {
         final token = response.token;
-
+        print(
+            "$token------------------------------------------------------------------------------------------------------->>>");
         final user = response.user;
+        print(user);
+        print(
+            "=============================================================================>");
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString("auth_token", token);
@@ -28,13 +33,13 @@ class Otpverificationcubit extends Cubit<OtpVerificationState> {
 
         emit(OtpVerificationSuccess(response: response));
       } else {
-        emit(const OtpVerificationFailure(error: "errorMessage));"));
+        emit(OtpVerificationFailure(error: "errorMessage));"));
       }
     } catch (e) {
-      if (e is DioException) {
+      if (e is DioError) {
         emit(OtpVerificationFailure(error: e.toString()));
       } else {
-        emit(const OtpVerificationFailure(error: "An unexpected error occurred."));
+        emit(OtpVerificationFailure(error: "An unexpected error occurred."));
       }
     }
   }

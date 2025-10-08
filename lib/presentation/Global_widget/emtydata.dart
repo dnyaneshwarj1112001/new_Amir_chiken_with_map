@@ -6,11 +6,11 @@ class EmptyStateWidget extends StatelessWidget {
   final double height;
 
   const EmptyStateWidget({
-    super.key,
+    Key? key,
     this.message = "No data found",
     this.icon = Icons.info_outline,
     this.height = 240, // default height if not specified
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

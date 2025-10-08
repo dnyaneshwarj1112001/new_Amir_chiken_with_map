@@ -587,7 +587,7 @@ class _AddressEntryScreenState extends State<AddressEntryScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () =>
-              Navigator.pushReplacementNamed(context, AppRoutes.myCart),
+              Navigator.pushReplacementNamed(context, AppRoutes.myCard),
         ),
       ),
       body: Form(

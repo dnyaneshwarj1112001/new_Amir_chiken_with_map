@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:meatzo/presentation/Global_widget/bottomNavigationbar.dart';
 import 'package:meatzo/presentation/Global_widget/gap.dart';
 import 'package:meatzo/presentation/Global_widget/Onbording%20Screen/preScreens.dart';
+import 'package:meatzo/screens/Screen/HomeScrens/home_page_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:meatzo/presentation/Global_widget/app_routes.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -16,8 +16,9 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   void navigatePage() {
-    Timer(const Duration(seconds: 4), () {
-      Navigator.pushReplacementNamed(context, AppRoutes.phoneAuth);
+    Timer(Duration(seconds: 4), () {
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => const OnbordingScreen()));
     });
   }
 
@@ -25,13 +26,13 @@ class _SplashScreenState extends State<SplashScreen> {
     Timer(const Duration(seconds: 3), () async {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("auth_token");
-
+      print(token);
       if (token != null && token.isNotEmpty) {
-        // Navigate to home with bottom navigation
-        Navigator.pushReplacementNamed(context, AppRoutes.home);
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => NavBar()));
       } else {
-        // Navigate to onboarding
-        Navigator.pushReplacementNamed(context, AppRoutes.phoneAuth);
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => OnbordingScreen()));
       }
     });
   }
@@ -46,12 +47,12 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xff9C141C),
+      backgroundColor: Color(0xff9C141C),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Center(
-            child: SizedBox(
+            child: Container(
               height: 260,
               width: 260,
               child: Image.asset("lib/innitiel_screens/images/Murga.png"),
@@ -63,7 +64,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 fontSize: 60,
                 fontFamily: 'KaushanScript',
               )),
-          const Gaph(
+          Gaph(
             height: 10,
           ),
           const Text("Order Meat From Apni Dukan",
@@ -75,5 +76,5 @@ class _SplashScreenState extends State<SplashScreen> {
         ],
       ),
     );
-  }
+  } 
 }

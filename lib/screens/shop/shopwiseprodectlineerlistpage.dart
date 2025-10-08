@@ -1,5 +1,7 @@
 import 'package:meatzo/screens/Mycart/Screens/MyCartScreen.dart';
+import 'package:meatzo/screens/Order/My_Order.dart';
 import 'package:flutter/material.dart';
+import 'package:meatzo/helper/util.dart';
 import 'package:meatzo/presentation/Global_widget/gap.dart';
 import 'package:meatzo/presentation/Global_widget/Appcolor.dart';
 import 'package:meatzo/screens/Mycart/Screens/Addtocartservice.dart';
@@ -38,6 +40,7 @@ class _ShopwiseProductLinearListState extends State<ShopwiseProductLinearList> {
         });
       }
     } catch (e) {
+      print('Error fetching cart items: $e');
     }
   }
 
@@ -64,7 +67,6 @@ class _ShopwiseProductLinearListState extends State<ShopwiseProductLinearList> {
                 boxShadow: [
                   BoxShadow(
                     color: (isSuccess ? Colors.green : Colors.red)
-                        // ignore: deprecated_member_use
                         .withOpacity(0.2),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
@@ -117,12 +119,12 @@ class _ShopwiseProductLinearListState extends State<ShopwiseProductLinearList> {
   @override
   Widget build(BuildContext context) {
     if (widget.productList.isEmpty) {
-      return const SizedBox(
+      return SizedBox(
         height: 280,
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+            children: const [
               Icon(Icons.shopping_bag_outlined, size: 60, color: Colors.grey),
               SizedBox(height: 12),
               Text(
@@ -259,7 +261,7 @@ class _ShopwiseProductLinearListState extends State<ShopwiseProductLinearList> {
                                       fontSize: 14,
                                     ),
                                   ),
-                                  const Gapw(width: 20),
+                                  Gapw(width: 20),
                                   if (selectedPrice['paper_price'] !=
                                       selectedPrice['sale_price'])
                                     Text(
@@ -318,7 +320,10 @@ class _ShopwiseProductLinearListState extends State<ShopwiseProductLinearList> {
                               priceId: priceId.toString(),
                               shopId: shopId.toString(),
                             );
- 
+
+                            print("Add to cart result: $result");
+
+                            
                             showCenteredSnackBar(
                                 result['message'], true 
                                 );

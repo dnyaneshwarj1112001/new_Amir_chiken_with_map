@@ -95,7 +95,7 @@ class _CustomiseDrawerandchipState extends State<CustomiseDrawerandchip> {
             children: [
               Column(
                 children: [
-                  const Row(
+                  Row(
                     children: [
                       Globalicons(
                         icon: Icons.home,
@@ -115,13 +115,13 @@ class _CustomiseDrawerandchipState extends State<CustomiseDrawerandchip> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Row(
+                              Row(
                                 children: [
                                   SizedBox(
                                     width: 200,
                                     child: Text(
                                       "Flat No. 301, Balaji Heights, Shivaji Nagar, Pune",
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.w600,
                                         fontSize: 13,
@@ -130,8 +130,8 @@ class _CustomiseDrawerandchipState extends State<CustomiseDrawerandchip> {
                                       maxLines: 1,
                                     ),
                                   ),
-                                  SizedBox(width: 5),
-                                  Icon(
+                                  const SizedBox(width: 5),
+                                  const Icon(
                                     Icons.keyboard_arrow_down,
                                     color: Colors.white,
                                     size: 20,

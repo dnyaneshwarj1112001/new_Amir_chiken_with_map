@@ -5,6 +5,7 @@ import 'package:meatzo/presentation/Global_widget/apptext.dart';
 import 'package:meatzo/presentation/Global_widget/bottomNavigationbar.dart';
 import 'package:meatzo/presentation/Global_widget/customechipbutton.dart';
 import 'package:meatzo/screens/Order/My_Order.dart';
+import 'package:meatzo/screens/Order/orderService/placeorderservice.dart';
 import 'package:flutter/material.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -40,7 +41,7 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("auth_token");
-      const baseUrl = "https://meatzo.com/api/order";
+      final baseUrl = "https://meatzo.com/api/order";
 
       final Map<String, dynamic> body = {
         "payment_mode": paymentMode,
@@ -59,8 +60,10 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
         },
         body: jsonEncode(body),
       );
+      print("Response: ${response.body}");
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
+        print("Response Data: $data");
 
         _showSuccessDialog();
       }
@@ -99,6 +102,9 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
   }
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) {
+    print("payment id ${response.paymentId}");
+    print("payment mode ${widget.Payment_mode}");
+
     // Navigator.pop(context,
     //     {'paymentId': response.paymentId, 'paymentMode': widget.Payment_mode});
     _placeOrder(paymentMode: "online", razorpayPaymentId: response.paymentId);
@@ -169,7 +175,7 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
               const SizedBox(height: 30),
               ElevatedButton.icon(
                 icon: const Icon(Icons.payment, color: Colors.white),
-                label: const Apptext(
+                label: Apptext(
                   text: 'Pay Now',
                   color: Colors.white,
                 ),
@@ -192,16 +198,15 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      // ignore: deprecated_member_use
       builder: (context) => WillPopScope(
         onWillPop: () async {
-          Navigator.pushReplacementNamed(context, AppRoutes.home);
+          Navigator.pushReplacementNamed(context, AppRoutes.nav);
           return false;
         },
         child: AlertDialog(
-          title: const Apptext(
+          title: Apptext(
               text: "Thank You for Your Order!", fontWeight: FontWeight.bold),
-          content: const Apptext(
+          content: Apptext(
             text:
                 "Your order has been successfully placed. Please go to View my order for live tracking.",
           ),
@@ -214,7 +219,7 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
                   onPressed: () {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (_) => const NavBar()),
+                      MaterialPageRoute(builder: (_) => NavBar()),
                     );
                   },
                 ),
@@ -223,8 +228,7 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
                   onPressed: () {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(
-                          builder: (_) => const OrderDetailsScreen()),
+                      MaterialPageRoute(builder: (_) => OrderDetailsScreen()),
                     );
                   },
                 ),

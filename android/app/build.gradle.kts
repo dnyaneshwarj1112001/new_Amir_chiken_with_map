@@ -48,8 +48,8 @@ android {
         applicationId = "com.cloudregex.meatzo" 
         minSdk = flutter.minSdkVersion
         targetSdk = 35
-        versionCode = 7
-        versionName = "1.0.7" 
+        versionCode = 8
+        versionName = "1.0.8" 
         multiDexEnabled = true
     }
 

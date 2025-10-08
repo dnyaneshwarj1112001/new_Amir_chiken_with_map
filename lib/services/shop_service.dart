@@ -13,6 +13,7 @@ class ShopService {
     final token = prefs.getString("auth_token");
 
     final url = Uri.parse("$_baseUrl/shop/by/category/$categoryId");
+    print('url: $url , token: $token , category : $categoryId');
     try {
       final response = await http.get(
         url,
@@ -28,12 +29,15 @@ class ShopService {
         if (data['hasError'] == false && data['shops'] != null) {
           return data['shops']['data']; // Return the list of shop data
         } else {
+          print("API error: ${data['message']}");
           return []; // Return empty list on API-level error
         }
       } else {
+        print("Failed to fetch shops. Status code: ${response.statusCode}");
         return []; // Return empty list on HTTP error
       }
     } catch (e) {
+      print("Error fetching shops by category: $e");
       return []; // Return empty list on network/parsing error
     }
   }

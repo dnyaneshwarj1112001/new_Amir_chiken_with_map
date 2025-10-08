@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meatzo/presentation/Global_widget/AppbarGlobal.dart';
 import 'package:meatzo/presentation/Global_widget/Appcolor.dart';
+import 'package:meatzo/presentation/Global_widget/apptext.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -40,7 +41,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(
+      appBar: CustomAppBar(
         title: "Settings",
         titleColor: Colors.white,
         titleFontWeight: FontWeight.bold,
@@ -52,9 +53,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildSection(
             "About",
             [
-              const ListTile(
-                title: Text("App Version"),
-                trailing: Text("1.0.0"),
+              ListTile(
+                title: const Text("App Version"),
+                trailing: const Text("1.0.0"),
               )
             ],
           ),

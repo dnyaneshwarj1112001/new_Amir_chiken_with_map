@@ -8,7 +8,7 @@ class ShippingPolicyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(
+      appBar: CustomAppBar(
         title: "Shipping Policy",
         titleColor: Colors.white,
         titleFontWeight: FontWeight.bold,

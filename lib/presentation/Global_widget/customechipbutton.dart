@@ -1,5 +1,6 @@
 import 'package:meatzo/presentation/Global_widget/apptext.dart';
 import 'package:flutter/material.dart';
+import 'package:meatzo/presentation/Global_widget/Appcolor.dart';
 
 class CustomChipButton extends StatelessWidget {
   final String text; // Text on the chip button
@@ -17,9 +18,9 @@ class CustomChipButton extends StatelessWidget {
       onTap: onPressed,
       borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: const Color(0xff9a292f), // Background color
+          color: Color(0xff9a292f), // Background color
           borderRadius: BorderRadius.circular(20), // Rounded edges
           border: Border.all(color: Colors.white, width: 1), // Border
         ),

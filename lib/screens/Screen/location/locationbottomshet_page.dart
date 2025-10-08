@@ -10,7 +10,7 @@ void showLocationBottomSheet(BuildContext context) {
       borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
     ),
     builder: (context) {
-      return SizedBox(
+      return Container(
         height: 300,
         child: Column(
           children: [
@@ -20,7 +20,7 @@ void showLocationBottomSheet(BuildContext context) {
                   color: Appcolor.primaryRed,
                   height: 80,
                   width: MediaQuery.of(context).size.width,
-                  child: const Center(
+                  child: Center(
                     child: Column(
                       children: [
                         Row(
@@ -58,13 +58,13 @@ void showLocationBottomSheet(BuildContext context) {
                     ),
                   ),
                 ),
-                const Gaph(height: 10),
-                const Apptext(
+                Gaph(height: 10),
+                Apptext(
                   text: "Select Delevary Address",
                   fontWeight: FontWeight.bold,
                   size: 14,
                 ),
-                const Divider(),
+                Divider(),
               ],
             ),
             ListTile(

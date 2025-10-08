@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:meatzo/presentation/Global_widget/bottomNavigationbar.dart';
 import 'package:meatzo/screens/shop/ShopDetailsPage.dart';
 import 'package:meatzo/screens/shop/productdetailstpage.dart';
 import 'package:meatzo/screens/shop/allshopsgridpage.dart';
@@ -17,11 +16,10 @@ class ShopContentWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use the original NavBar but wrap the content
     return WillPopScope(
       onWillPop: () async {
         // Navigate back to home with bottom navigation
-        NavigationService.instance.goToHome(context);
+        Navigator.pushReplacementNamed(context, AppRoutes.home);
         return false; // Prevent default back behavior
       },
       child: Scaffold(
@@ -65,19 +63,18 @@ class ShopContentWrapper extends StatelessWidget {
       backgroundColor: const Color(0xFF9A292F),
       currentIndex: 0, // Always show home tab as active
       onTap: (index) {
-        // Handle navigation to other tabs
         switch (index) {
           case 0:
-            // Already on home tab (shop/product content)
+            Navigator.pushReplacementNamed(context, AppRoutes.home);
             break;
           case 1:
-            NavigationService.instance.goToCart(context);
+            Navigator.pushReplacementNamed(context, AppRoutes.myCard);
             break;
           case 2:
-            NavigationService.instance.goToOrder(context);
+            Navigator.pushReplacementNamed(context, AppRoutes.order);
             break;
           case 3:
-            NavigationService.instance.goToProfile(context);
+            Navigator.pushReplacementNamed(context, AppRoutes.profile);
             break;
         }
       },

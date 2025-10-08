@@ -10,6 +10,7 @@ import 'package:meatzo/presentation/Global_widget/app_routes.dart';
 import 'package:meatzo/screens/Order/paymentScressn.dart';
 import 'package:meatzo/screens/Order/My_Order.dart';
 import 'package:meatzo/presentation/Global_widget/bottomNavigationbar.dart';
+import 'package:meatzo/presentation/Global_widget/gap.dart';
 
 class OrderRecipt extends StatefulWidget {
   final double? price;
@@ -41,7 +42,9 @@ class _OrderReciptState extends State<OrderRecipt> {
     required String paymentMode,
     String? razorpayPaymentId,
   }) async {
-    if (_isLoading) return;
+    if (_isLoading) {
+      CircularProgressIndicator();
+    }
 
     setState(() {
       _isLoading = true;
@@ -69,8 +72,10 @@ class _OrderReciptState extends State<OrderRecipt> {
         },
         body: jsonEncode(body),
       );
+      print("Response: ${response.body}");
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
+        print("Response Data: $data");
 
         _showSuccessDialog();
       }
@@ -95,45 +100,42 @@ class _OrderReciptState extends State<OrderRecipt> {
       barrierDismissible: false,
       builder: (context) => WillPopScope(
         onWillPop: () async {
-          Navigator.pushReplacementNamed(context, AppRoutes.home);
+          Navigator.pushReplacementNamed(context, AppRoutes.nav);
           return false;
         },
-        child: Container(
-          width: double.infinity,
-          child: AlertDialog(
-            title: const Apptext(
-                text: "Thank You for Your Order!", fontWeight: FontWeight.bold),
-            content: const Apptext(
-              text:
-                  "Your order has been successfully placed. Please go to View my order for live tracking.",
-            ),
-            actions: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  CustomChipButton(
-                    text: "BACK TO HOME",
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (_) => const NavBar()),
-                      );
-                    },
-                  ),
-                  CustomChipButton(
-                    text: "VIEW MY ORDERS",
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const OrderDetailsScreen()),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ],
+        child: AlertDialog(
+          title: Apptext(
+              text: "Thank You for Your Order!", fontWeight: FontWeight.bold),
+          content: Expanded(
+            child: Orderpopuptext(
+                text:
+                    "Your order has been successfully placed. Please go to View my order for live tracking."),
           ),
+          actions: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                CustomChipButton(
+                  text: "BACK TO HOME",
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => NavBar()),
+                    );
+                  },
+                ),
+                CustomChipButton(
+                  text: "VIEW MY ORDERS",
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => OrderDetailsScreen()),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -147,7 +149,7 @@ class _OrderReciptState extends State<OrderRecipt> {
     final double total = subtotal - discount + tax;
 
     return Scaffold(
-      appBar: const CustomAppBar(title: "Order Receipt"),
+      appBar: CustomAppBar(title: "Order Receipt"),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -162,7 +164,7 @@ class _OrderReciptState extends State<OrderRecipt> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Apptext(
+                    Apptext(
                         text: "Product Details", fontWeight: FontWeight.bold),
                     const Divider(),
                     ListTile(
@@ -177,7 +179,7 @@ class _OrderReciptState extends State<OrderRecipt> {
                       ),
                     ),
                     const Divider(),
-                    const Apptext(
+                    Apptext(
                         text: "Price Breakdown", fontWeight: FontWeight.bold),
                     const SizedBox(height: 8),
                     _buildPriceRow(
@@ -191,7 +193,7 @@ class _OrderReciptState extends State<OrderRecipt> {
                     _buildPriceRow("Total Bill", "₹${total.toStringAsFixed(2)}",
                         isBold: true, fontSize: 18),
                     const SizedBox(height: 16),
-                    const Apptext(
+                    Apptext(
                         text: "Shipping Address", fontWeight: FontWeight.bold),
                     const Divider(),
                     Padding(
@@ -209,30 +211,32 @@ class _OrderReciptState extends State<OrderRecipt> {
                         text: "Payment Method", fontWeight: FontWeight.bold),
                     const Divider(),
                     _buildRadioButton("COD", "Cash On Delivery"),
-                    _buildRadioButton("Online", "Online Payment"),
+                    // _buildRadioButton("Online", "Online Payment"),
                     const SizedBox(height: 10),
                     CustomChipButton(
                       text: _isLoading ? "Placing Order..." : "Place Order",
                       onPressed: () {
-                        if (_selectedPayment == "Online") {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => OnlinePaymentScreen(
-                                amount: total,
-                                Payment_mode: _selectedPayment,
-                              ),
-                            ),
-                          ).then((result) async {
-                            if (result != null &&
-                                result is Map<String, dynamic>) {
-                              await _placeOrder(
-                                paymentMode: result['paymentMode'],
-                                razorpayPaymentId: result['paymentId'],
-                              );
-                            }
-                          });
-                        } else if (_selectedPayment == "COD") {
+                        // if (_selectedPayment == "Online") {
+                        //   Navigator.push(
+                        //     context,
+                        //     MaterialPageRoute(
+                        //       builder: (_) => OnlinePaymentScreen(
+                        //         amount: total,
+                        //         Payment_mode: _selectedPayment,
+                        //       ),
+                        //     ),
+                        //   ).then((result) async {
+                        //     if (result != null &&
+                        //         result is Map<String, dynamic>) {
+                        //       await _placeOrder(
+                        //         paymentMode: result['paymentMode'],
+                        //         razorpayPaymentId: result['paymentId'],
+                        //       );
+                        //     }
+                        //   });
+                        // } else
+                        if (_selectedPayment == "COD") {
+                          print("you chose cod");
                           _placeOrder(
                             paymentMode: _selectedPayment.toLowerCase(),
                           );
@@ -302,5 +306,18 @@ class _OrderReciptState extends State<OrderRecipt> {
         ],
       ),
     );
+  }
+}
+
+class Orderpopuptext extends StatelessWidget {
+  final String text;
+  const Orderpopuptext({
+    super.key,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(text);
   }
 }

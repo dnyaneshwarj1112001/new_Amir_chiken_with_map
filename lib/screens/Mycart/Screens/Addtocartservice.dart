@@ -11,10 +11,10 @@ class CartService {
     required String shopId,
     int quantity = 1,
   }) async {
-    const String url = '$_baseUrl/cart';
+    final String url = '$_baseUrl/cart';
     final prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('auth_token');
-
+    print(token);
     try {
       final response = await http.post(
         Uri.parse(url),
@@ -32,6 +32,7 @@ class CartService {
 
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
+        print(" $data");
         return {
           'success': true,
           'message': data['message'] ?? 'Added to cart successfully'
@@ -43,6 +44,7 @@ class CartService {
         };
       }
     } catch (e) {
+      print("❌ Exception: $e");
       return {
         'success': false,
         'message': 'Something went wrong. Please try again later.'
@@ -56,7 +58,7 @@ class CartService {
     final String url = '$_baseUrl/cart/$productId';
     final prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('auth_token');
-
+    print(token);
     try {
       final response = await http.delete(
         Uri.parse(url),
@@ -68,19 +70,23 @@ class CartService {
       );
 
       final data = jsonDecode(response.body);
-
+      print(data);
       if (response.statusCode == 200) {
+        print(response);
+        print("✅ Deleted cart item successfully: $data");
         return {
           'success': true,
           'message': data['message'] ?? 'Cart item deleted successfully'
         };
       } else {
+        print("❌ Failed to delete cart item: $data");
         return {
           'success': false,
           'message': data['message'] ?? 'Failed to delete cart item'
         };
       }
     } catch (e) {
+      print("❌ Exception: $e");
       return {
         'success': false,
         'message': 'Something went wrong. Please try again later.'
@@ -89,10 +95,10 @@ class CartService {
   }
 
   static Future<Map<String, dynamic>> clearFullCartHttp() async {
-    const String url = '$_baseUrl/cart';
+    final String url = '$_baseUrl/cart';
     final prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('auth_token');
-
+    print("Attempting to clear full cart with token: $token");
     try {
       final response = await http.delete(
         Uri.parse(url),
@@ -104,17 +110,21 @@ class CartService {
 
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
+        print("🟢 Cart cleared successfully via API: $data");
         return {
           'success': true,
           'message': data['message'] ?? 'Cart cleared successfully'
         };
       } else {
+        print(
+            "🔴 Failed to clear cart via API: ${response.statusCode} - $data");
         return {
           'success': false,
           'message': data['message'] ?? 'Failed to clear cart'
         };
       }
     } catch (e) {
+      print("❌ Exception clearing full cart: $e");
       return {
         'success': false,
         'message': 'Something went wrong during cart clearing: $e'
@@ -127,7 +137,7 @@ class CartService {
     final String url = '$_baseUrl/cart/$cartId';
     final prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('auth_token');
-
+    print(token);
     try {
       final response = await http.put(Uri.parse(url), headers: {
         'Accept': 'application/json',
@@ -137,20 +147,23 @@ class CartService {
       });
 
       final data = jsonDecode(response.body);
-
+      print(data);
       if (response.statusCode == 200) {
+        print("✅ Updated cart item quantity successfully: $data");
         return {
           'success': true,
           'message':
               data['message'] ?? 'Cart item quantity updated successfully'
         };
       } else {
+        print("❌ Failed to update cart item quantity: $data");
         return {
           'success': false,
           'message': data['message'] ?? 'Failed to update cart item quantity'
         };
       }
     } catch (e) {
+      print("❌ Exception: $e");
       return {
         'success': false,
         'message': 'Something went wrong. Please try again later.'

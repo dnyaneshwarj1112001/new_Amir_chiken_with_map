@@ -1,9 +1,9 @@
+import 'package:meatzo/presentation/Global_widget/emtydata.dart';
 import 'package:flutter/material.dart';
 import 'package:meatzo/presentation/Global_widget/Appcolor.dart';
 import 'package:meatzo/presentation/Global_widget/apptext.dart';
-import 'package:meatzo/presentation/Global_widget/emtydata.dart';
 import 'package:meatzo/screens/shop/ShopDetailsPage.dart';
-import 'package:meatzo/presentation/Global_widget/app_routes.dart';
+import 'package:meatzo/presentation/Global_widget/bottomNavigationbar.dart';
 
 class ShopsNearyou extends StatefulWidget {
   final List<dynamic> shops;
@@ -23,17 +23,20 @@ class ShopsNearyou extends StatefulWidget {
 
 class _ShopsNearyouState extends State<ShopsNearyou> {
   void navigateToDetails(Map<String, dynamic> shop) {
-    // Use the new navigation service to show bottom navigation bar
-    NavigationService.instance.goToShopDetails(
+    Navigator.push(
       context,
-      shopId: shop['id']?.toString() ?? '',
-      shopName: shop['name'] ?? 'Unknown',
-      images: shop['image'] ?? '',
-      deliveryIn: shop['opens_at'] ?? 'N/A',
-      closedAt: shop['closes_at'] ?? 'N/A',
-      openAt: shop['opens_at'] ?? 'N/A',
-      latitude: shop['lat'] ?? '',
-      lagitude: shop['lng'] ?? '',
+      MaterialPageRoute(
+        builder: (context) => ShopDetailsPage(
+          text: shop['name'] ?? 'Unknown',
+          shopId: shop['id']?.toString() ?? '',
+          images: shop['image'] ?? '',
+          deliveryIn: shop['opens_at'] ?? 'N/A',
+          closedAt: shop['closes_at'] ?? 'N/A',
+          openAt: shop['opens_at'] ?? 'N/A',
+          latitude: shop['lat'] ?? '',
+          lagitude: shop['lng'] ?? '',
+        ),
+      ),
     );
   }
 
@@ -134,7 +137,7 @@ class _ShopsNearyouState extends State<ShopsNearyou> {
                           const SizedBox(height: 5),
                           Row(
                             children: [
-                              const Apptext(
+                              Apptext(
                                 text: "Opens At: ",
                                 fontWeight: FontWeight.bold,
                                 size: 12,
@@ -176,9 +179,9 @@ class _ShopsNearyouState extends State<ShopsNearyou> {
                       ),
                       child: InkWell(
                         onTap: () => navigateToDetails(shop),
-                        child: const Row(
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
+                          children: const [
                             Text(
                               "Shop Now",
                               style: TextStyle(

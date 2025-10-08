@@ -10,9 +10,10 @@ class CartApi {
   static Future<List<dynamic>?> fetchCartData() async {
     final prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('auth_token');
-    const String url = '$_baseUrl/cart';
+    final String url = '$_baseUrl/cart';
 
     if (token == null) {
+      print("Token not found");
       return null;
     }
 
@@ -28,14 +29,19 @@ class CartApi {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data is List) {
+          print(data);
           return data;
         } else {
+          print("Unexpected response format");
           return null;
         }
       } else {
+        print("Failed to fetch cart: ${response.statusCode}");
+        print(response.body);
         return null;
       }
     } catch (e) {
+      print("Error fetching cart: $e");
       return null;
     }
   }

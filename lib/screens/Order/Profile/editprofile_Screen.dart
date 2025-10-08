@@ -12,7 +12,7 @@ class _EditprofileScreenState extends State<EditprofileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("EDIT ACCOUNT"),
+        title: Text("EDIT ACCOUNT"),
       ),
       body: Form(
         child: Column(

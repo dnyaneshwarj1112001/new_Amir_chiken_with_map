@@ -11,16 +11,19 @@ import 'package:meatzo/helper/util.dart';
 
 import 'package:meatzo/presentation/Global_widget/Appcolor.dart';
 import 'package:meatzo/presentation/Global_widget/apptext.dart';
+import 'package:meatzo/presentation/Global_widget/dummyimages.dart';
 import 'package:meatzo/presentation/Global_widget/gap.dart';
-// Your updated Categories widget
+import 'package:meatzo/presentation/Global_widget/CustomiseDrawerandchip.dart'; // Your updated Categories widget
 
 import 'package:meatzo/screens/Screen/HomeScrens/pincodepopup.dart';
 import 'package:meatzo/screens/Screen/HomeScrens/pin_Code_service.dart';
+import 'package:meatzo/screens/Order/Profile/profileScreen.dart';
 import 'package:meatzo/screens/shop/allshopsgridpage.dart'; // Ensure this file exists
+import 'package:meatzo/screens/Screen/HomeScrens/serchbar.dart';
+import 'package:meatzo/screens/shop/productdetailstpage.dart';
 import 'package:meatzo/screens/Screen/HomeScrens/near_shops.dart';
 import 'package:meatzo/screens/Screen/HomeScrens/shopsListHorizontal.dart';
 import 'package:meatzo/screens/Mycart/Screens/mycartapiservice.dart';
-import 'package:meatzo/presentation/Global_widget/app_routes.dart';
 
 class HomePageScreen extends StatefulWidget {
   const HomePageScreen({super.key});
@@ -80,6 +83,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
           isLoding = false;
         });
       } else {
+        print("Failed to fetch home data. Status code: ${response.statusCode}");
         if (mounted) {
           setState(() {
             isLoding = false;
@@ -87,6 +91,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
         }
       }
     } catch (e) {
+      print("Error fetching home data: $e");
       if (mounted) {
         setState(() {
           isLoding = false;
@@ -113,7 +118,9 @@ class _HomePageScreenState extends State<HomePageScreen> {
           });
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      print("Error checking pincode: $e");
+    }
   }
 
   void _showPincodeBottomSheet([bool isInitialLoad = false]) {
@@ -206,6 +213,14 @@ class _HomePageScreenState extends State<HomePageScreen> {
   Future<void> _clearCartOnPincodeChange(SharedPreferences prefs) async {
     final result = await CartService.clearFullCartHttp();
     if (!mounted) return;
+
+    if (result['success']) {
+      print("Cart cleared successfully from backend due to pincode change.");
+    } else {
+      print(
+          "Failed to clear cart from backend during pincode change: ${result['message']}");
+    }
+
     await prefs.remove('persisted_pincode_for_cart');
   }
 
@@ -224,8 +239,12 @@ class _HomePageScreenState extends State<HomePageScreen> {
             duration: const Duration(seconds: 2),
           ),
         );
+      } else {
+        print("Failed to update pincode");
       }
-    } catch (e) {}
+    } catch (e) {
+      print("Error updating pincode: $e");
+    }
   }
 
   @override
@@ -330,12 +349,12 @@ class _HomePageScreenState extends State<HomePageScreen> {
                         }).toList(),
                       ),
                     const SizedBox(height: 30),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Expanded(
+                          const Expanded(
                             child: Text(
                               "WHAT'S ON YOUR MIND?",
                               style: TextStyle(color: Colors.black),
@@ -378,10 +397,14 @@ class _HomePageScreenState extends State<HomePageScreen> {
                                   ),
                                   InkWell(
                                     onTap: () {
-                                      // Use the new navigation service to show bottom navigation bar
-                                      NavigationService.instance.goToAllShops(
+                                      Navigator.push(
                                         context,
-                                        shops: shoplist,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              AllShopsGridPage(
+                                            shops: shoplist,
+                                          ),
+                                        ),
                                       );
                                     },
                                     child: Text(
@@ -405,49 +428,6 @@ class _HomePageScreenState extends State<HomePageScreen> {
                 ),
               ),
             ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton.small(
-            heroTag: "cart",
-            onPressed: () => NavigationService.instance.goToCart(context),
-            backgroundColor: Colors.orange,
-            child: const Icon(Icons.shopping_cart, color: Colors.white),
-          ),
-          const SizedBox(height: 8),
-          FloatingActionButton.small(
-            heroTag: "order",
-            onPressed: () => NavigationService.instance.goToOrder(context),
-            backgroundColor: Colors.green,
-            child: const Icon(Icons.local_shipping, color: Colors.white),
-          ),
-          const SizedBox(height: 8),
-          FloatingActionButton.small(
-            heroTag: "profile",
-            onPressed: () => NavigationService.instance.goToProfile(context),
-            backgroundColor: Colors.blue,
-            child: const Icon(Icons.person, color: Colors.white),
-          ),
-          const SizedBox(height: 8),
-          // Demo button for shop navigation
-          FloatingActionButton.small(
-            heroTag: "shop_demo",
-            onPressed: () => NavigationService.instance.goToShopDetails(
-              context,
-              shopId: "123",
-              shopName: "Demo Shop",
-              images: "https://via.placeholder.com/300x200",
-              deliveryIn: "30-40 mins",
-              closedAt: "10:00 PM",
-              openAt: "8:00 AM",
-              latitude: "28.6139",
-              lagitude: "77.2090",
-            ),
-            backgroundColor: Colors.purple,
-            child: const Icon(Icons.store, color: Colors.white),
-          ),
-        ],
-      ),
     );
   }
 }

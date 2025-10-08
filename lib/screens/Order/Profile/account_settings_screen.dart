@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meatzo/presentation/Global_widget/AppbarGlobal.dart';
 import 'package:meatzo/presentation/Global_widget/Appcolor.dart';
+import 'package:meatzo/presentation/Global_widget/apptext.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
@@ -63,7 +64,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(
+      appBar: CustomAppBar(
         title: "Account Settings",
         titleColor: Colors.white,
         titleFontWeight: FontWeight.bold,

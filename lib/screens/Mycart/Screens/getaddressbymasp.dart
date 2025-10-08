@@ -24,7 +24,7 @@ class _GetaddresslatlongState extends State<Getaddresslatlong> {
       Position position = await _determinePosition();
       latitude = position.latitude;
       longitude = position.longitude;
-    
+      print("Latitude: $latitude, Longitude: $longitude");
 
       List<Placemark> placemarks =
           await placemarkFromCoordinates(latitude, longitude);

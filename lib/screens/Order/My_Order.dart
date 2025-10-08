@@ -1,13 +1,17 @@
 import 'package:meatzo/helper/util.dart';
 import 'package:meatzo/presentation/Global_widget/AppbarGlobal.dart';
 import 'package:meatzo/presentation/Global_widget/Appcolor.dart';
+import 'package:meatzo/presentation/trackorderMap.page/TrackOrderPage.dart';
 import 'package:meatzo/screens/AuthScreen/custome_Next_button.dart';
+import 'package:meatzo/presentation/Global_widget/gap.dart';
 import 'package:meatzo/screens/Order/TrackOrderPage.dart';
+import 'package:meatzo/screens/Order/orderService/delivarychargesservice.dart';
 import 'package:meatzo/screens/Order/orderService/myorderService.dart';
 import 'package:meatzo/screens/Order/invoice_recipt.dart';
 import 'package:flutter/material.dart';
 import 'package:meatzo/presentation/Global_widget/apptext.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
   const OrderDetailsScreen({super.key});
@@ -22,9 +26,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   Future<void> fetchOrders() async {
     final fetchedOrders = await OrderDetailq.fetchOrders();
-
-    // Check if widget is still mounted before calling setState
-    if (!mounted) return;
 
     if (fetchedOrders != null) {
       setState(() {
@@ -62,12 +63,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   void initState() {
     super.initState();
     fetchOrders();
-  }
-
-  @override
-  void dispose() {
-    // Ensure proper cleanup
-    super.dispose();
   }
 
   @override
@@ -163,89 +158,53 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               color: Colors.grey[700],
                               fontWeight: FontWeight.bold,
                             ),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 12),
                             Row(
                               children: [
-                                SizedBox(
-                                  height: 30,
-                                  width: 140,
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
+                                CustomButton(
+                                  height: 40,
+                                  width: 150,
+                                  text: "View Receipt",
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
                                           builder: (context) => Invoice_Recept(
-                                            orderId: order["order_master_id"],
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor:
-                                          Color(0xff9a292f), // ✅ your app color
-                                      foregroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                            30), // ✅ circular edges
-                                      ),
-                                      elevation: 4,
-                                    ),
-                                    child: const Text(
-                                      "View Receipt",
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
+                                                orderId:
+                                                    order["order_master_id"],
+                                              )),
+                                    );
+                                  },
                                 ),
                                 const SizedBox(width: 10),
                                 if (order['order_status'] ==
                                     "transporting") ...[
-                                  SizedBox(
-                                    height: 30,
-                                    width: 120,
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        final double initialLat =
-                                            double.tryParse(
-                                                    order['lat']?.toString() ??
-                                                        '0.0') ??
-                                                0.0;
-                                        final double initialLng =
-                                            double.tryParse(
-                                                    order['lng']?.toString() ??
-                                                        '0.0') ??
-                                                0.0;
+                                  CustomButton(
+                                    height: 40,
+                                    width: 170,
+                                    text: "Track Order",
+                                    onPressed: () {
+                                      final double initialLat = double.tryParse(
+                                              order['lat']?.toString() ??
+                                                  '0.0') ??
+                                          0.0;
+                                      final double initialLng = double.tryParse(
+                                              order['lng']?.toString() ??
+                                                  '0.0') ??
+                                          0.0;
 
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                TrackOrderMapPage(
-                                              orderId: order["order_master_id"],
-                                              initialLat: initialLat,
-                                              initialLng: initialLng,
-                                            ),
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              TrackOrderMapPage(
+                                            orderId: order["order_master_id"],
+                                            initialLat: initialLat,
+                                            initialLng: initialLng,
                                           ),
-                                        );
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(
-                                            0xff9a292f), // ✅ custom color
-                                        foregroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                              30), // ✅ circular edges
                                         ),
-                                        elevation: 4,
-                                      ),
-                                      child: const Text(
-                                        "Track Order",
-                                        style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
+                                      );
+                                    },
                                   ),
                                 ]
                               ],
@@ -316,13 +275,13 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         Apptext(
           text: name,
           fontWeight: FontWeight.w500,
-          size: 12,
+          size: 10,
         ),
         Apptext(
           text: "₹ $price",
           color: Colors.green,
           fontWeight: FontWeight.bold,
-          size: 12,
+          size: 10,
         ),
       ],
     );

@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 Future<void> deleteCartItem(int productId) async {
   final prefs = await SharedPreferences.getInstance();
   final String? token = prefs.getString('auth_token');
-  
+  print('Token: $token');
 
   final url = Uri.parse('https://meatzo.com/api/cart/$productId');
 
@@ -17,8 +17,14 @@ Future<void> deleteCartItem(int productId) async {
         'Authorization': 'Bearer $token',
       },
     );
-  // ignore: empty_catches
+
+    if (response.statusCode == 200) {
+      print('Deleted successfully: ${response.body}');
+    } else {
+      print('Failed to delete: ${response.statusCode}');
+      print('Response body: ${response.body}');
+    }
   } catch (e) {
-   
+    print('Error: $e');
   }
 }

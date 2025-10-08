@@ -61,8 +61,10 @@ class _MyCardScreenState extends State<MyCardScreen>
     if (_persistedPincodeForCart != null &&
         selectedPincodeFromHome != null &&
         _persistedPincodeForCart != selectedPincodeFromHome) {
+      print(
+          "Detected pincode change: Old: $_persistedPincodeForCart, New: $selectedPincodeFromHome. Showing confirmation dialog.");
+
       bool? confirmClear = await showDialog<bool>(
-        // ignore: use_build_context_synchronously
         context: context,
         builder: (BuildContext dialogContext) {
           return AlertDialog(
@@ -93,6 +95,7 @@ class _MyCardScreenState extends State<MyCardScreen>
       if (confirmClear == true) {
         await _clearCartAndNotify();
       } else {
+        print("User chose NOT to clear cart. Loading existing cart data.");
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -125,7 +128,15 @@ class _MyCardScreenState extends State<MyCardScreen>
   }
 
   Future<void> _clearCartAndNotify() async {
+    final result = await CartService.clearFullCartHttp();
     if (!mounted) return;
+
+    if (result['success']) {
+      print("Cart cleared successfully from backend.");
+    } else {
+      print("Failed to clear cart from backend: ${result['message']}");
+    }
+
     if (mounted) {
       setState(() {
         cartList.clear();
@@ -237,9 +248,12 @@ class _MyCardScreenState extends State<MyCardScreen>
         await CartService.deleteCartItemHttp(productId: id.toString());
 
     if (mounted && result['success']) {
+      print("🟢 Deleted successfully");
       await loadCartData();
       _checkPincodeMismatch();
       setState(() {});
+    } else {
+      print("🔴 Error deleting: ${result['message']}");
     }
   }
 
@@ -259,8 +273,11 @@ class _MyCardScreenState extends State<MyCardScreen>
             0.0;
 
         final int amt = (distance * 10).toInt();
+
+        print("Calculated Delivery Amount (₹10/km): ₹$amt");
         deliveryCharges = amt;
       } else {
+        print("Delivery charge data not available or status is false.");
         deliveryCharges = 0;
       }
     }
@@ -280,20 +297,19 @@ class _MyCardScreenState extends State<MyCardScreen>
   @override
   Widget build(BuildContext context) {
     final bool canProceed =
-        !_isDataLoading && cartList.isNotEmpty && !showPincodeMismatchWarning;
+        !_isDataLoading && !cartList.isEmpty && !showPincodeMismatchWarning;
     double finalTotal = canProceed
         ? subtotal - totalDiscount + deliveryCharges + totalGst
         : 0.0;
 
-    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
-        Navigator.pushReplacementNamed(context, AppRoutes.home);
+        Navigator.pushReplacementNamed(context, AppRoutes.nav);
         return false;
       },
       child: Scaffold(
         backgroundColor: Colors.grey[100],
-        appBar: const CustomAppBar(
+        appBar: CustomAppBar(
           title: "My Cart",
           titleColor: Colors.white,
           titleFontWeight: FontWeight.bold,
@@ -318,7 +334,7 @@ class _MyCardScreenState extends State<MyCardScreen>
                                 color: Colors.grey[400],
                               ),
                               const SizedBox(height: 10),
-                              const Apptext(
+                              Apptext(
                                 text: "No Cart Found",
                                 size: 14,
                                 fontWeight: FontWeight.bold,
@@ -579,20 +595,14 @@ class _MyCardScreenState extends State<MyCardScreen>
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(color: Colors.red),
                             ),
-                            child: Text(
-                              "Your selected delivery pincode ($selectedPincodeFromHome) does not match the shipping address pincode ($shippingPincode). Please change your delivery location or shipping address.",
-                              style: const TextStyle(
-                                color: Colors.red,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-
-                              maxLines: null, // allow multi-line
-                              overflow: TextOverflow
-                                  .visible, // text wraps instead of clipping
-                              textAlign: TextAlign.start, // better alignment
+                            child: Apptext(
+                              text:
+                                  "Your selected delivery pincode ($selectedPincodeFromHome) does not match the shipping address pincode ($shippingPincode). Please change your delivery location or shipping address.",
+                              color: Colors.red,
+                              size: 12,
+                              fontWeight: FontWeight.w500,
                             ),
-                          )
+                          ),
                         ],
                       ],
                     ),
@@ -607,7 +617,7 @@ class _MyCardScreenState extends State<MyCardScreen>
                                   'Product';
                             }).join(', ');
 
-                            Navigator.push(
+                            Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
                                 builder: (_) => OrderRecipt(

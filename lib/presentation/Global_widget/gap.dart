@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class Gaph extends StatelessWidget {
   final double height;
 
-  const Gaph({super.key, required this.height});
+  const Gaph({Key? key, required this.height}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

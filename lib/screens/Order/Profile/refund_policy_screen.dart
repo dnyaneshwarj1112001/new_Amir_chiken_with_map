@@ -8,7 +8,7 @@ class RefundPolicyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(
+      appBar: CustomAppBar(
         title: "Refund Policy",
         titleColor: Colors.white,
         titleFontWeight: FontWeight.bold,

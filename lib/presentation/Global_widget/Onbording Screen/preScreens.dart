@@ -1,7 +1,9 @@
 import 'package:meatzo/screens/AuthScreen/Phone_Auth_page.dart';
+import 'package:meatzo/screens/Screen/HomeScrens/home_page_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:onboarding_intro_screen/onboarding_screen.dart';
 
+import '../bottomNavigationbar.dart';
 
 class OnbordingScreen extends StatefulWidget {
   const OnbordingScreen({super.key});
@@ -16,7 +18,7 @@ class _OnbordingScreenState extends State<OnbordingScreen> {
     return OnBoardingScreen(
       onSkip: () {
         Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) => const PhoneAuthScreen()));
+            MaterialPageRoute(builder: (context) => PhoneAuthScreen()));
       },
       showPrevNextButton: true,
 

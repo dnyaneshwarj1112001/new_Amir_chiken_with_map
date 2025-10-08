@@ -29,6 +29,7 @@ class PincodeService {
         final Map<String, dynamic> responseData = json.decode(response.body);
 
         if (responseData['hasError'] == false) {
+          print(responseData['message']);
           return responseData['message'];
         } else {
           return "Error: ${responseData['message']}";

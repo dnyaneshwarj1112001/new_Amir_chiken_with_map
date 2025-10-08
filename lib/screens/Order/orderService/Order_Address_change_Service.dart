@@ -12,9 +12,10 @@ class OrderApi {
     final Addressdata = Address;
     final prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('auth_token');
-    const String url = '$_baseUrl/Address';
+    final String url = '$_baseUrl/Address';
 
     if (token == null) {
+      print("Token not found");
       return null;
     }
 
@@ -29,16 +30,20 @@ class OrderApi {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data is List) {
+          print("Address Update SuccessFully");
 
           return data;
         } else {
+          print("Unexpected response format");
           return null;
         }
       } else {
-      
+        print("Failed to fetch cart: ${response.statusCode}");
+        print(response.body);
         return null;
       }
     } catch (e) {
+      print("Error fetching cart: $e");
       return null;
     }
   }

@@ -234,15 +234,17 @@ class _PincodeBottomSheetState extends State<PincodeBottomSheet> {
 
   Widget _buildMap() {
     if (_isMapError) {
-      // Close bottom sheet first
-      Future.microtask(() {
-        if (mounted) {
-          Navigator.of(context).pop(); // 👈 closes bottom sheet
-          _showLocationPopup(context);
-        }
-      });
-      return const SizedBox
-          .shrink(); // return empty widget since bottom sheet closes
+      return Container(
+        height: 200,
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey),
+        ),
+        child: const Center(
+          child: Text('Failed to load map. Please try again.'),
+        ),
+      );
     }
 
     return Container(
@@ -257,7 +259,6 @@ class _PincodeBottomSheetState extends State<PincodeBottomSheet> {
         child: Stack(
           children: [
             GoogleMap(
-              key: const ValueKey("pincode_google_map"),
               initialCameraPosition: CameraPosition(
                 target: _selectedLocation ?? const LatLng(18.5204, 73.8567),
                 zoom: 12,
@@ -422,10 +423,7 @@ class _PincodeBottomSheetState extends State<PincodeBottomSheet> {
                 ),
                 child: const Text(
                   "Apply",
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Colors.white),
+                  style: TextStyle(color: Colors.white),
                 ),
               ),
             ),
@@ -442,25 +440,5 @@ class _PincodeBottomSheetState extends State<PincodeBottomSheet> {
     _pincodeController.dispose();
     _mapController?.dispose();
     super.dispose();
-  }
-
-  void _showLocationPopup(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Location Disabled"),
-        content: const Text("Please enable location services to use the map."),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              Geolocator
-                  .openLocationSettings(); // 👈 opens Google location settings
-            },
-            child: const Text("Enable"),
-          ),
-        ],
-      ),
-    );
   }
 }

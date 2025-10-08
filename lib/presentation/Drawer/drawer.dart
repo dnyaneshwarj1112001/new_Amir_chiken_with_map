@@ -34,7 +34,7 @@ class DrawerExample extends StatelessWidget {
               style: TextStyle(color: Colors.white),
             ),
             onTap: () {
-              Navigator.pushReplacementNamed(context, AppRoutes.myCart);
+              Navigator.pushReplacementNamed(context, AppRoutes.myCard);
             },
           ),
           ListTile(
@@ -45,7 +45,7 @@ class DrawerExample extends StatelessWidget {
             ),
             onTap: () {
               Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const OrderRecipt()));
+                  MaterialPageRoute(builder: (context) => OrderRecipt()));
             },
           ),
           ListTile(
@@ -57,7 +57,7 @@ class DrawerExample extends StatelessWidget {
             ),
             onTap: () {
               Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const OrderRecipt()));
+                  MaterialPageRoute(builder: (context) => OrderRecipt()));
             },
           ),
           ListTile(
@@ -67,10 +67,8 @@ class DrawerExample extends StatelessWidget {
               style: TextStyle(color: Colors.white),
             ),
             onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ProfileScreen()));
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => ProfileScreen()));
             },
           ),
           ListTile(

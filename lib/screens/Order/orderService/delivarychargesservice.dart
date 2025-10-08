@@ -8,9 +8,10 @@ class DeliveryCharges {
   static Future<Map<String, dynamic>?> charges() async {
     final prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('auth_token');
-    const String url = '$_baseUrl/delivery/charges';
+    final String url = '$_baseUrl/delivery/charges';
 
     if (token == null) {
+      print("Token not found");
       return null;
     }
 
@@ -25,11 +26,14 @@ class DeliveryCharges {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
+        print("Response data: $data");
         return data;
       } else {
+        print("Failed to fetch charges: ${response.statusCode}");
         return null;
       }
     } catch (e) {
+      print("Error fetching delivery charges: $e");
       return null;
     }
   }

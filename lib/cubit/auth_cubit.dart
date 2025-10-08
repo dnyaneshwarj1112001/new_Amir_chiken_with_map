@@ -16,10 +16,11 @@ class AuthCubit extends Cubit<AuthState> {
     emit(AuthLoading());
     try {
       final response = await _authRepository.login(phone);
-    
+      print(
+          "${response.toJson()}==================================================================================================1>>>>");
       emit(AuthSuccess(response: response));
     } catch (e) {
-    
+      print(e);
       emit(AuthFailure(message: e.toString()));
     }
   }

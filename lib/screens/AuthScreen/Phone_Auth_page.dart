@@ -8,7 +8,7 @@ import 'package:meatzo/features/auth/presentation/AuthScreen/Otp_verification_pa
 class PhoneAuthScreen extends StatefulWidget {
   static const String id = 'PhoneAuthScreen';
 
-  const PhoneAuthScreen({super.key});
+  const PhoneAuthScreen({Key? key}) : super(key: key);
 
   @override
   State<PhoneAuthScreen> createState() => _PhoneAuthScreenState();
@@ -91,10 +91,10 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 35),
-                      const Align(
+                      Align(
                         alignment: Alignment.centerLeft,
                         child: Row(
-                          children: [
+                          children: const [
                             Icon(Icons.lock, color: Colors.teal, size: 18),
                             SizedBox(width: 6),
                             Text(
@@ -141,7 +141,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                       ),
                       const SizedBox(height: 30),
                       CustomButton(
-                        onPressed: isValid && state is! AuthLoading
+                        onPressed: isValid && !(state is AuthLoading)
                             ? () {
                                 if (_formKey.currentState!.validate()) {
                                   context.read<AuthCubit>().loginWithPhone(
@@ -150,12 +150,11 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                               }
                             : () {},
                         text: state is AuthLoading ? "Loading..." : "Sign In",
-                      
                       ),
                       const SizedBox(height: 30),
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
+                        children: const [
                           Icon(Icons.verified_user,
                               color: Colors.green, size: 20),
                           SizedBox(width: 8),

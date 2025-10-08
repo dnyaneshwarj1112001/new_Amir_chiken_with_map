@@ -51,7 +51,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return false;
       },
       child: Scaffold(
-        appBar: const CustomAppBar(
+        appBar: CustomAppBar(
           title: "Profile",
           titleColor: Colors.white,
           titleFontWeight: FontWeight.bold,

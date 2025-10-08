@@ -8,7 +8,7 @@ class TermsAndConditionsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(
+      appBar: CustomAppBar(
         title: "Terms and Conditions",
         titleColor: Colors.white,
         titleFontWeight: FontWeight.bold,

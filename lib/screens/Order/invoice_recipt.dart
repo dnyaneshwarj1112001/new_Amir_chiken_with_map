@@ -3,14 +3,13 @@ import 'package:meatzo/screens/Order/orderService/single_order_service.dart';
 import 'package:flutter/material.dart';
 import 'package:meatzo/presentation/Global_widget/apptext.dart';
 import 'package:meatzo/presentation/Global_widget/gap.dart';
-import 'package:meatzo/presentation/Global_widget/bottomNavigationbar.dart';
-import 'package:meatzo/presentation/Global_widget/app_routes.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:meatzo/presentation/Global_widget/bottomNavigationbar.dart';
 
 class Invoice_Recept extends StatefulWidget {
   final int orderId;
-  const Invoice_Recept({super.key, required this.orderId});
+  Invoice_Recept({super.key, required this.orderId});
 
   @override
   State<Invoice_Recept> createState() => _Invoice_ReceptState();
@@ -73,6 +72,7 @@ Grand Total: ₹${order['total_bill']}
 Terms & Conditions:
 The Company reserves the right, at its discretion, to change, modify, add, or remove portions of these Terms at any time by posting the amended Terms.
 
+Powered by Cloud Regex Pvt Ltd, Mob: 8999951727
 ''';
   }
 
@@ -84,6 +84,8 @@ The Company reserves the right, at its discretion, to change, modify, add, or re
 
   @override
   Widget build(BuildContext context) {
+    print('orderId: ${widget.orderId}');
+
     return Scaffold(
       appBar: CustomAppBar(
         title: "Invoice Receipt",
@@ -94,7 +96,7 @@ The Company reserves the right, at its discretion, to change, modify, add, or re
               if (snapshot.connectionState == ConnectionState.done &&
                   snapshot.hasData) {
                 return IconButton(
-                  icon: const Icon(Icons.share, color: Colors.white),
+                  icon: Icon(Icons.share, color: Colors.white),
                   onPressed: () => _shareReceipt(snapshot.data!),
                 );
               }
@@ -102,17 +104,12 @@ The Company reserves the right, at its discretion, to change, modify, add, or re
             },
           ),
         ],
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () =>
-              Navigator.pushReplacementNamed(context, AppRoutes.order),
-        ),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _futureOrder,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (snapshot.hasData) {
@@ -134,7 +131,7 @@ The Company reserves the right, at its discretion, to change, modify, add, or re
                                 child: Image.asset(
                                     "lib/innitiel_screens/images/scooter.jpg")),
                             Padding(
-                              padding: const EdgeInsets.all(12.0),
+                              padding: EdgeInsets.all(12.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -171,7 +168,7 @@ The Company reserves the right, at its discretion, to change, modify, add, or re
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Apptext(
+                                  Apptext(
                                       text: "Invoice To:",
                                       fontWeight: FontWeight.bold),
                                   Apptext(
@@ -190,8 +187,8 @@ The Company reserves the right, at its discretion, to change, modify, add, or re
                               width: 1.5,
                               color: Colors.grey,
                             ),
-                            const SizedBox(width: 10),
-                            const SizedBox(
+                            SizedBox(width: 10),
+                            SizedBox(
                               width: 165,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,10 +217,10 @@ The Company reserves the right, at its discretion, to change, modify, add, or re
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(12.0),
+                        padding: EdgeInsets.all(12.0),
                         child: Column(
                           children: [
-                            const Row(
+                            Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Apptext(
@@ -241,7 +238,7 @@ The Company reserves the right, at its discretion, to change, modify, add, or re
                                     fontWeight: FontWeight.bold),
                               ],
                             ),
-                            const Divider(),
+                            Divider(),
                             ...order['order_children'].map<Widget>((item) {
                               return Padding(
                                 padding:
@@ -272,11 +269,11 @@ The Company reserves the right, at its discretion, to change, modify, add, or re
                       children: [
                         Expanded(
                           child: Padding(
-                            padding: const EdgeInsets.all(12.0),
+                            padding: EdgeInsets.all(12.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Apptext(
+                                Apptext(
                                     text: "Payment Info:",
                                     size: 14,
                                     fontWeight: FontWeight.bold),
@@ -349,57 +346,14 @@ The Company reserves the right, at its discretion, to change, modify, add, or re
                       ),
                     ),
                     const SizedBox(height: 10),
-                    const Divider(),
                   ],
                 ),
               ),
             );
           } else {
-            return const Center(child: Text('No order data available.'));
+            return Center(child: Text('No order data available.'));
           }
         },
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFF9A292F),
-        currentIndex: 2, // Order tab index
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.grey,
-        elevation: 8,
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              Navigator.pushReplacementNamed(context, AppRoutes.home);
-              break;
-            case 1:
-              Navigator.pushReplacementNamed(context, AppRoutes.myCart);
-              break;
-            case 2:
-              // Already on orders page
-              break;
-            case 3:
-              Navigator.pushReplacementNamed(context, AppRoutes.profile);
-              break;
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
-            label: 'MyCart',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.local_shipping),
-            label: 'Order',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle),
-            label: 'Profile',
-          ),
-        ],
       ),
     );
   }
